@@ -21,11 +21,13 @@ class ChatMessage:
     created_at: datetime
 
     @classmethod
-    def create(cls, conversation_id: UUID, content: str, sender: Role,) -> "ChatMessage":
+    def create(cls, conversation_id: UUID, content: str, sender: Role) -> "ChatMessage":
         """Factory method to ensure valid state from the start."""
         if not isinstance(sender, Role):
             raise InvalidEntityException("Sender must be a valid Role.")
-            
+        if not isinstance(content, str):
+            raise InvalidEntityException("Content must be a string.")
+
         return cls(
             conversation_id=conversation_id,
             content=Content(content),
