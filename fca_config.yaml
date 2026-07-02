@@ -1,0 +1,379 @@
+project:
+  name: my_api
+  description: A clean architecture FastAPI project
+  version: 0.1.0
+  created_at: '2026-06-25T18:08:42.846223Z'
+  updated_at: '2026-06-26T08:06:22.047854Z'
+  systems:
+    user_management:
+      description: User management and authentication
+      created_at: '2026-06-25T18:08:55.274498Z'
+      updated_at: '2026-06-25T18:09:08.099204Z'
+      modules:
+        users:
+          description: User domain logic
+          created_at: '2026-06-25T18:09:08.099204Z'
+          updated_at: '2026-06-25T18:09:08.099204Z'
+          components:
+            domain:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            application:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            infrastructure:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            presentation:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+    assessment:
+      description: the tracking layer
+      created_at: '2026-06-26T07:56:58.544615Z'
+      updated_at: '2026-06-26T08:05:13.201469Z'
+      modules:
+        quiz:
+          description: ''
+          created_at: '2026-06-26T08:05:13.201469Z'
+          updated_at: '2026-06-26T08:05:13.201469Z'
+          components:
+            domain:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            application:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            infrastructure:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            presentation:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+    ingestion:
+      description: ''
+      created_at: '2026-06-26T08:05:53.632437Z'
+      updated_at: '2026-06-26T08:06:22.047854Z'
+      modules:
+        resource:
+          description: ''
+          created_at: '2026-06-26T08:06:22.047854Z'
+          updated_at: '2026-06-26T08:06:22.047854Z'
+          components:
+            domain:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            application:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            infrastructure:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+            presentation:
+              entities: []
+              repositories: []
+              value_objects: []
+              services: []
+              commands: []
+              queries: []
+              models: []
+              external: []
+              api: []
+              schemas: []
+              default_imports:
+                entities:
+                - dataclasses
+                - typing
+                - datetime
+                repositories:
+                - typing
+                services:
+                - typing
+                api:
+                - fastapi
+                - typing
+                schemas:
+                - pydantic
+                - typing
+templates: {}
+naming:
+  snake_case: true
+  auto_pluralize: true
+components:
+  entities: []
+  repositories: []
+  value_objects: []
+  services: []
+  commands: []
+  queries: []
+  models: []
+  external: []
+  api: []
+  schemas: []
+  default_imports:
+    entities:
+    - dataclasses
+    - typing
+    - datetime
+    repositories:
+    - typing
+    services:
+    - typing
+    api:
+    - fastapi
+    - typing
+    schemas:
+    - pydantic
+    - typing

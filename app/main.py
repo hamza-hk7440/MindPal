@@ -1,0 +1,34 @@
+"""
+Main entry point for user_management system.
+"""
+
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from chat.presentation.api_router import api_router
+from chat.application.exceptions.exception import (
+    InvalidMessageException, 
+    ConversationNotFoundException, 
+    ConversationCreationFailureException
+)
+from chat.presentation.middleware.exception_handler import exception_handler
+from chat.infrastructure.database.session import init_chat_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_chat_db()
+    yield
+
+
+app=FastAPI(title="MindPal Chat API", version="1.0.0", lifespan=lifespan)
+
+app.add_exception_handler(InvalidMessageException, exception_handler)
+app.add_exception_handler(ConversationNotFoundException, exception_handler)
+app.add_exception_handler(ConversationCreationFailureException, exception_handler)
+app.include_router(api_router, prefix="/api/v1")
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
