@@ -10,6 +10,7 @@ from chat.application.exceptions.exception import InvalidMessageException,Conver
 from chat.application.dtos.message_dto import SendMessageDTO
 from chat.domain.interfaces.conversation_repo import IConversationRepository
 from chat.infrastructure.config.settings import settings
+from chat.application.use_cases.queries.fetch_message import FetchMessageUseCase
 from uuid import UUID
 
 
@@ -39,25 +40,27 @@ class GenerateResponseUseCase:
         if not conversation_exists:
             raise ConversationNotFoundException(f"Conversation with ID {conversation_id} does not exist.")
 
-    async def _generate_ai_response(self,chunks: list[str], conversation_id: UUID, content: str) -> str:
+    async def _generate_ai_response(self,chunks: list[str], conversation_id: UUID, content: str, chat_history: list) -> str:
+        
         if settings.USE_LOCAL_LLM or settings.ENVIRONMENT.lower() == "local":
-            return await self.llama2_service.send_message_to_llama2(chunks, conversation_id, content)
+            return await self.llama2_service.send_message_to_llama2(chunks, conversation_id, content, chat_history)
 
-        return await self.gemini_service.send_message_to_gemini(chunks, conversation_id, content)
+        return await self.gemini_service.send_message_to_gemini(chunks, conversation_id, content, chat_history)
 
     async def generate_response(self, conversation_id: UUID, content: str)-> SendMessageDTO:
         await self._validate_message_input(content, Role.AI, conversation_id)
+        chat_history = await FetchMessageUseCase(self.message_repo, self.event_dispatcher, self.conversation_repo).fetch_messages_by_conversation_id(conversation_id)
         chunks = await self.rag_provider.get_context_chunks(content)
-        response_content = await self._generate_ai_response(chunks, conversation_id, content)
+        response_content = await self._generate_ai_response(chunks, conversation_id, content, chat_history=chat_history)
         # Create the response message entity
-        response_message = ChatMessage(conversation_id=conversation_id, content=response_content, sender=Role.AI)
+        response_message = ChatMessage.create(conversation_id=conversation_id, content=response_content, sender=Role.AI)
         # Save the response message using the repository
         await self.message_repo.save_message(response_message)
         # Publish the SendMessageEvent for the response
         event = SendMessageEvent(
             message_id=response_message.id,
             conversation_id=response_message.conversation_id,
-            content=response_message.content,
+            content=response_message.content.value,
             sender=response_message.sender
         )
         await self.event_dispatcher.dispatch(event)
@@ -65,7 +68,7 @@ class GenerateResponseUseCase:
         return SendMessageDTO(
             id=response_message.id,
             conversation_id=response_message.conversation_id,
-            content=response_message.content,
+            content=response_message.content.value,
             sender=response_message.sender,
             created_at=response_message.created_at
         )

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from supabase import AsyncClient
 
-from chat.domain.entities.message import ChatMessage
+from chat.domain.entities.message import ChatMessage, Content
 from chat.domain.interfaces.message_repo import IMessageRepository
 from chat.domain.value_objects.message_objects import Role
 from chat.infrastructure.config.settings import settings
@@ -34,10 +34,10 @@ class MessageRepository(IMessageRepository):
     @classmethod
     def _to_entity(cls, row: dict) -> ChatMessage:
         return ChatMessage(
-            id=UUID(str(row["id"])),
             conversation_id=UUID(str(row["conversation_id"])),
-            content=row["content"],
+            content=Content(row["content"]),
             sender=cls._parse_role(str(row["sender"])),
+            id=UUID(str(row["id"])),
             created_at=cls._parse_datetime(row.get("created_at")),
         )
 
@@ -61,7 +61,7 @@ class MessageRepository(IMessageRepository):
                 {
                     "id": str(message.id),
                     "conversation_id": str(message.conversation_id),
-                    "content": message.content,
+                    "content": message.content.value,
                     "sender": self._serialize_role(message.sender),
                     "created_at": message.created_at.isoformat() if message.created_at else None,
                 }
@@ -111,7 +111,7 @@ class MessageRepository(IMessageRepository):
             self._table()
             .update(
                 {
-                    "content": entity.content,
+                    "content": entity.content.value,
                     "sender": self._serialize_role(entity.sender),
                 }
             )

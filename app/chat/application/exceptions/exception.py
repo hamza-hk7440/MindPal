@@ -1,3 +1,4 @@
+"""Exceptions what we will need in the use cases of the chat module."""
 class ChatException(Exception):
     """
     Base class for all chat-related exceptions.

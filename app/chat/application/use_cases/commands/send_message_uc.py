@@ -38,14 +38,14 @@ class SendMessageUseCase:
         # Validate input
         sender = await self._validate_message_input(content, sender, conversation_id)
         # Create the message entity
-        message = ChatMessage(conversation_id=conversation_id, content=content, sender=sender)
+        message = ChatMessage.create(conversation_id=conversation_id, content=content, sender=sender)
         # Save the message using the repository
         await self.message_repo.save_message(message)
         # Publish the SendMessageEvent
         event = SendMessageEvent(
             message_id=message.id,
             conversation_id=message.conversation_id,
-            content=message.content,
+                    content=message.content.value,
             sender=message.sender
         )
         await self.event_dispatcher.dispatch(event)
@@ -53,7 +53,7 @@ class SendMessageUseCase:
         return SendMessageDTO(
             id=message.id,
             conversation_id=message.conversation_id,
-            content=message.content,
+            content=message.content.value,
             sender=message.sender,
             created_at=message.created_at
         )

@@ -1,3 +1,4 @@
+"""Date Trasnfer Object for sending a message."""
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID

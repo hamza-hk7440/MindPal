@@ -1,3 +1,5 @@
+from email import message
+
 from chat.application.services.llama2_service import ILlama2Service
 from chat.infrastructure.config.settings import settings
 
@@ -5,9 +7,22 @@ import httpx
 
 
 class Llama2Client(ILlama2Service):
-    async def send_message_to_llama2(self, cleaned_context: str, conversation_id: str, message: str) -> str:
+    async def serialize_fetch_messages(self, chat_history: list) -> str:
+        """
+        Serialize the chat history into a string format.
+        """
+        serialized_history = ""
+        for message in chat_history:
+            serialized_history += f"{message.sender.value}: {message.content}\n"
+        return serialized_history.strip()
+    async def send_message_to_llama2(self, cleaned_context: str, conversation_id: str, message: str, chat_history: list) -> str:
+        chat_history_as_string = await self.serialize_fetch_messages(chat_history)
         formatted_prompt=f"""
-        You are an AI assistant helping students with their course materials. Based on the following relevant chunks from the course materials, provide a concise and informative response to the user's question.
+        You are an AI assistant helping students with their course materials.
+        If the student asks a question depends on previous discussions with you in the conversation, you should consider the previous messages in the conversation to provide a more accurate and helpful answer.
+        Chat History:
+        {chat_history_as_string}
+        Your answer will be provided based on the following relevant chunks from the course materials, provide a concise and informative response to the user's question.
         Also, if the relevant chunks do not contain enough information to answer the question, please respond with "Your current documents don't underline this detail." Do not make up answers or provide information that is not present in the relevant chunks.
         And always provide the user with simple and daily examples to make him imagine the situation and understand the answer better.
         In addition, be gentle with students and behave like a teacher who is trying to help his students understand the course materials better.
@@ -29,7 +44,7 @@ class Llama2Client(ILlama2Service):
         9) End with a solid summary conclusion and a powerful motivational message to encourage them to keep pushing forward.
 
         Important: Do not make up answers or provide information that is not present in the relevant chunks. If the relevant chunks do not contain enough information to answer the question, please respond with "Your current documents don't underline this detail."
-    """
+        """
         payload = {
             "model": "llama2",
             "prompt": formatted_prompt,

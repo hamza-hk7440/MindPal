@@ -9,9 +9,26 @@ class GeminiClient(IGeminiService):
         self.model=genai.GenerativeModel(
             model_name="gemini-1.5-flash",
         )
-    async def send_message_to_gemini(self,cleaned_context: str, conversation_id: str, message: str) -> str:
+    async def serialize_fetch_messages(self, messages: list) -> str:
+        """
+        Serializes a list of messages into a string format suitable for the Gemini model.
+        Each message is formatted as "Role: Content" and separated by newlines.
+        """
+        serialized_messages = []
+        for message in messages:
+            role = message.sender.value  # Assuming sender is an Enum with a value attribute
+            content = message.content
+            serialized_messages.append(f"{role}: {content}")
+        return "\n".join(serialized_messages)
+    
+    async def send_message_to_gemini(self,cleaned_context: str, conversation_id: str, message: str,chat_history: list) -> str:
+        chat_history_as_string = await self.serialize_fetch_messages(chat_history)
         formatted_prompt=f"""
-        You are an AI assistant helping students with their course materials. Based on the following relevant chunks from the course materials, provide a concise and informative response to the user's question.
+        You are an AI assistant helping students with their course materials.
+        If the student asks a question depends on previous discussions with you in the conversation, you should consider the previous messages in the conversation to provide a more accurate and helpful answer.
+        Chat History:
+        {chat_history_as_string}
+        Your answer will be provided based on the following relevant chunks from the course materials, provide a concise and informative response to the user's question.
         Also, if the relevant chunks do not contain enough information to answer the question, please respond with "Your current documents don't underline this detail." Do not make up answers or provide information that is not present in the relevant chunks.
         And always provide the user with simple and daily examples to make him imagine the situation and understand the answer better.
         In addition, be gentle with students and behave like a teacher who is trying to help his students understand the course materials better.
