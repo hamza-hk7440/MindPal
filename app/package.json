@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "pydantic": "^0.0.1-security",
-    "sqlalchemy": "^10.1.1"
-  }
-}

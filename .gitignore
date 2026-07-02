@@ -22,7 +22,10 @@ build/
 dist/
 *.egg-info/
 
+# Node / frontend artifacts
 app/node_modules/
-app/package-lock.json/
-app/package.json/
-chat_module_handoff.md/
+app/package-lock.json
+app/package.json
+
+# Project notes / generated handoff files
+chat_module_handoff.md

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field,BeforeValidator, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from chat.domain.value_objects.message_objects import Role
 class SendMessageDTO(BaseModel):
     id: Annotated[UUID | None, Field(description="The unique identifier of the message.")] = None

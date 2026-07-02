@@ -2,7 +2,6 @@ from sqlalchemy import Column, String, DateTime, func, ForeignKey, Enum as SQLAl
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
-from enum import Enum
 from chat.infrastructure.database.base import Base
 from chat.domain.value_objects.message_objects import Role
 
