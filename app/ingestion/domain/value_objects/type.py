@@ -1,6 +1,6 @@
 import enum
 
-class Type(enum.Enum):
+class Doc_type(enum.Enum):
     TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"

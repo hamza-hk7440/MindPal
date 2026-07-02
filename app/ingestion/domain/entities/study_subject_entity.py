@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime,timezone
 from uuid import UUID, uuid4
-from ingestion.domain.exceptions.domain_exceptions import (InvalidEntityException)
+from app.chat.domain.exceptions.domain_exceptions import (InvalidEntityException)
 
 @dataclass(frozen=True)
 class Name:
