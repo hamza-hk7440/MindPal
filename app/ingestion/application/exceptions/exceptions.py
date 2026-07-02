@@ -18,13 +18,13 @@ class IngestionValidationException(IngestionException):
 class UnsupportedResourceFormatException(IngestionValidationException):
     """Raised when an uploaded file is not an allowed mime-type (e.g., trying to parse a .exe instead of .pdf)."""
     def __init__(self, message: str):
-        super().__init__(message, error_code="UNSUPPORTED_RESOURCE_FORMAT")
+        super().__init__(message, error_code="UNSUPPORTED_RESOURCE_FORMAT", status_code=415)
 
 
 class ResourceSizeExceededException(IngestionValidationException):
     """Raised when a file or video length exceeds the configured bounds for your ingestion/chunking limits."""
     def __init__(self, message: str):
-        super().__init__(message, error_code="RESOURCE_SIZE_EXCEEDED")
+        super().__init__(message, error_code="RESOURCE_SIZE_EXCEEDED", status_code=413)
 
 
 class UnauthorizedIngestionActionException(IngestionException):
