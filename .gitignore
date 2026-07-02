@@ -23,6 +23,6 @@ dist/
 *.egg-info/
 
 app/node_modules/
-app/package-lock.json
-app/package.json
-chat_module_handoff.md
+app/package-lock.json/
+app/package.json/
+chat_module_handoff.md/
