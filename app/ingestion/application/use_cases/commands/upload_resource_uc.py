@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 from ingestion.domain.entities.resource_entity import Resource
 from ingestion.domain.events.resource_events import CreateResourceEvent
