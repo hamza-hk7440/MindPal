@@ -10,6 +10,7 @@ class CreateResourceEvent(DomainEvent):
     doc_type: Doc_type
     title: str
     doc_url: str
+    content: str
 @dataclass(frozen=True)
 class GetAllResourcesEvent(DomainEvent):
     subject_id: UUID

@@ -10,6 +10,12 @@ class Title:
         if not self.value or self.value.strip() == "":
             raise InvalidEntityException("Resource title cannot be empty.")
 @dataclass(frozen=True)
+class Content:
+    value: str
+    def __post_init__(self):
+        if not self.value or self.value.strip() == "":
+            raise InvalidEntityException("Resource content cannot be empty.")
+@dataclass(frozen=True)
 class Doc_url:
     value: str
     def __post_init__(self):
@@ -22,10 +28,11 @@ class Resource:
     doc_type: Doc_type
     title: Title
     doc_url: Doc_url
+    content: Content
     created_at: datetime
 
     @classmethod
-    def create(cls, subject_id: UUID, doc_type: Doc_type, title: str, doc_url: str) -> "Resource":
+    def create(cls, subject_id: UUID, doc_type: Doc_type, title: str, doc_url: str, content: str) -> "Resource":
         """Factory method to ensure valid state from the start."""
         if not isinstance(doc_type, Doc_type):
             raise InvalidEntityException("Document type must be a valid Doc_type enum.")
@@ -35,5 +42,6 @@ class Resource:
             doc_type=doc_type,
             title=Title(title),
             doc_url=Doc_url(doc_url),
+            content=Content(content),
             created_at=datetime.now(timezone.utc)
         )

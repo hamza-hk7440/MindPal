@@ -49,3 +49,6 @@ class IResourceRepository(IRepository[Resource]):
     @abstractmethod
     async def exists(self, entity_id: UUID) -> bool:
         pass
+    @abstractmethod
+    async def get_content_by_resource_id(self, resource_id: UUID) -> Optional[str]:
+        pass
