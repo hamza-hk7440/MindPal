@@ -1,11 +1,12 @@
+from uuid import UUID
 from ingestion.domain.entities.study_subject_entity import StudySubject
 from ingestion.domain.interfaces.study_subject_repo import IStudySubjectRepository
-from ingestion.domain.entities.resource_entity import Resource
-from ingestion.domain.interfaces.resource_repo import IResourceRepository
-from uuid import UUID
-from ingestion.domain.events.resource_events import DeleteResourceEvent
 from chat.domain.interfaces.events import IEventDispatcher
+from ingestion.domain.entities.resource_entity import Resource
 from ingestion.application.exceptions.exceptions import ResourceNotFoundException, IngestionValidationException
+from ingestion.domain.interfaces.resource_repo import IResourceRepository
+from ingestion.domain.events.resource_events import DeleteResourceEvent
+
 
 class DeleteResourceUseCase:
     def __init__(self, resource_repo: IResourceRepository, study_subject_repo: IStudySubjectRepository, event_dispatcher: IEventDispatcher):

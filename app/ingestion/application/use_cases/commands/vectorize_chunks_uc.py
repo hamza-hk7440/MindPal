@@ -6,7 +6,6 @@ from ingestion.application.exceptions.exceptions import VectorizationFailureExce
 from chat.domain.interfaces.events import IEventDispatcher
 from ingestion.application.services.vectorize_chunk_service import IVectorizeChunkService
 from ingestion.domain.entities.chunks_entity import Embedding
-from dataclasses import replace as dataclass_replace
 class VectorizeChunksUseCase:
     def __init__(
         self,
