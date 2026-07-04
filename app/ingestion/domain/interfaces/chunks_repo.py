@@ -35,3 +35,6 @@ class IChunksRepository(IRepository[Chunk]):
         offset: int = 0
     ) -> Tuple[List[Chunk], int]:
         pass
+    @abstractmethod
+    async def update_chunk(self, chunk: Chunk) -> Chunk:
+        pass

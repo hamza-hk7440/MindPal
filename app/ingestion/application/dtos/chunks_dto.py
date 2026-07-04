@@ -9,6 +9,7 @@ class ChunkDTO(BaseModel):
     resource_id: Annotated[UUID, Field(description="The ID of the associated resource.")]
     study_subject_id: Annotated[UUID, Field(description="The ID of the associated study subject.")]
     content: Annotated[str, Field(min_length=1, max_length=10000)]
+    embedding: Annotated[list[float], Field(description="The embedding vector for the chunk.")]
     created_at: Annotated[datetime | None, Field(description="The timestamp when the chunk was created.")] = None
     model_config=ConfigDict(
         extra="forbid",

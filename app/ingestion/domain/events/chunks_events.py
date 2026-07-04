@@ -4,10 +4,12 @@ from app.chat.domain.events.base import DomainEvent
 
 @dataclass(frozen=True)
 class SplitChunkEvent(DomainEvent):
+    resource_id: UUID
     chunk_id: UUID
     subject_id: UUID
 @dataclass(frozen=True)
 class VectorizeChunkEvent(DomainEvent):
+    resource_id: UUID
     chunk_id: UUID
     subject_id: UUID
 @dataclass(frozen=True)

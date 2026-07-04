@@ -54,3 +54,13 @@ class IngestionExternalServiceException(IngestionException):
 class IngestionTimeoutException(IngestionException):
     def __init__(self, message: str):
         super().__init__(message, error_code="INGESTION_TIMEOUT", status_code=504)
+
+class VectorizationFailureException(IngestionProcessFailureException):
+    def __init__(self, message: str):
+        super().__init__(message, error_code="VECTORIZATION_FAILURE")
+class ChunkNotFoundException(IngestionException):
+    def __init__(self, message: str):
+        super().__init__(message, error_code="CHUNK_NOT_FOUND", status_code=404)
+class StudySubjectNotFoundException(IngestionException):
+    def __init__(self, message: str):
+        super().__init__(message, error_code="STUDY_SUBJECT_NOT_FOUND", status_code=404)
