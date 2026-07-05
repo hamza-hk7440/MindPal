@@ -10,15 +10,14 @@ class ChunksRepository(IChunksRepository):
         self.client = client
         self.table_name = settings.SUPABASE_CHUNKS_TABLE
 
-    def _table(self):
-        return self.client.table(self.table_name)
-
     @staticmethod
     def _parse_datetime(value: str | None) -> datetime | None:
         if not value:
             return None
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
+    def _table(self):
+        return self.client.table(self.table_name)
     @classmethod
     def _to_entity(cls, row: dict) -> Chunk:
         return Chunk(

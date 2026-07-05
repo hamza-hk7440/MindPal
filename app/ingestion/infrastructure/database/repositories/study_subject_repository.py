@@ -12,8 +12,7 @@ class StudySubjectRepository(IStudySubjectRepository):
         self.client = client
         self.table_name = settings.SUPABASE_STUDY_SUBJECTS_TABLE
 
-    def _table(self):
-        return self.client.table(self.table_name)
+
 
     @staticmethod
     def _parse_datetime(value: str | None) -> datetime | None:
@@ -29,6 +28,8 @@ class StudySubjectRepository(IStudySubjectRepository):
             name=Name(row["name"]),
             created_at=cls._parse_datetime(row.get("created_at")),
         )
+    def _table(self):
+        return self.client.table(self.table_name)
 
     async def get_study_subject_by_id(self, study_subject_id: UUID) -> StudySubject | None:
         response = await (
