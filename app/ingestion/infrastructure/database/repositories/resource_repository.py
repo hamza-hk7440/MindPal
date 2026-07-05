@@ -11,16 +11,10 @@ class ResourceRepository(IResourceRepository):
         self.client = client
         self.table_name = settings.SUPABASE_RESOURCES_TABLE
 
-    def _table(self):
-        return self.client.table(self.table_name)
+   
 
     # Added @staticmethod to remove 'self' positional tracking requirements
-    @staticmethod
-    def _parse_datetime(value: str | None) -> datetime | None:
-        if not value:
-            return None
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
+    
     # Explicitly declared as a proper classmethod matching your invocation pattern
     @classmethod
     def _to_entity(cls, row: dict) -> Resource:
@@ -49,6 +43,11 @@ class ResourceRepository(IResourceRepository):
         if not rows:
             return None
         return self._to_entity(rows[0])
+    @staticmethod
+    def _parse_datetime(value: str | None) -> datetime | None:
+        if not value:
+            return None
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     async def save_resource(self, resource: Resource) -> None:
         data = {
@@ -141,7 +140,8 @@ class ResourceRepository(IResourceRepository):
             .execute()
         )
         return bool(response.data)
-
+    def _table(self):
+        return self.client.table(self.table_name)
     async def get_content_by_resource_id(self, resource_id: UUID) -> str | None:
         response = await (
             self._table()

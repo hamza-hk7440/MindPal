@@ -11,15 +11,6 @@ class StudySubjectRepository(IStudySubjectRepository):
     def __init__(self, client: AsyncClient):
         self.client = client
         self.table_name = settings.SUPABASE_STUDY_SUBJECTS_TABLE
-
-
-
-    @staticmethod
-    def _parse_datetime(value: str | None) -> datetime | None:
-        if not value:
-            return None
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
     @classmethod
     def _to_entity(cls, row: dict) -> StudySubject:
         return StudySubject(
@@ -28,8 +19,6 @@ class StudySubjectRepository(IStudySubjectRepository):
             name=Name(row["name"]),
             created_at=cls._parse_datetime(row.get("created_at")),
         )
-    def _table(self):
-        return self.client.table(self.table_name)
 
     async def get_study_subject_by_id(self, study_subject_id: UUID) -> StudySubject | None:
         response = await (
@@ -43,7 +32,8 @@ class StudySubjectRepository(IStudySubjectRepository):
         if not rows:
             return None
         return self._to_entity(rows[0])
-
+    def _table(self):
+        return self.client.table(self.table_name)
     async def get_study_subject_by_name(self, user_id: UUID, name: str) -> StudySubject | None:
         response = await (
             self._table()
@@ -126,3 +116,8 @@ class StudySubjectRepository(IStudySubjectRepository):
         )
         rows = response.data or []
         return len(rows) > 0
+    @staticmethod
+    def _parse_datetime(value: str | None) -> datetime | None:
+        if not value:
+            return None
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
