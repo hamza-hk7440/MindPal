@@ -1,8 +1,8 @@
 import enum
 
 class Doc_type(enum.Enum):
-    TEXT = "text"
+    PDF = "pdf"
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
-    DOCUMENT = "document"
+    TEXT = "text"
