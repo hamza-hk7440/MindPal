@@ -1,6 +1,5 @@
 from sqlalchemy import Column, String, DateTime, func, ForeignKey, Enum as SQLAlchemyEnum
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 import uuid
 from app.chat.infrastructure.database.base import Base
 
