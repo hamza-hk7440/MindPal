@@ -21,30 +21,27 @@ from ingestion.infrastructure.external.extract_text_from_image_locally_repositor
 from ingestion.infrastructure.external.extract_text_from_image_with_gemini_repository import ExtractTextFromImageWithGeminiService
 from ingestion.infrastructure.external.extract_text_from_pdf_repository import ExtractTextFromPdfService
 from ingestion.infrastructure.external.extract_video_id_repository import ExtractVideoIdService
-from ingestion.infrastructure.external.extraxt_bytes_from_url_service_repository import ExtraxtBytesFromUrlService
+from ingestion.infrastructure.external.extract_bytes_from_url_service_repository import ExtraxtBytesFromUrlService
 from ingestion.infrastructure.external.file_handler_repository import FileHandlerService
 from ingestion.infrastructure.external.slice_document_into_chunks_repository import SliceDocumentIntoChunksService
 from ingestion.infrastructure.external.transcribe_audio_service_repository import TranscribeAudioService
 from ingestion.infrastructure.external.vectorize_chunk_repository import VectorizeChunkService
-from ingestion.infrastructure.external.youtube_video_transcrib_repository import YoutubeVideoTranscriptService
+from ingestion.infrastructure.external.youtube_video_transcript_repository import YoutubeVideoTranscriptService
 
 from ingestion.presentation.controllers.chunks_controller import ChunksController
 from ingestion.presentation.controllers.resource_controller import ResourceController
 from ingestion.presentation.controllers.study_subject_controller import StudySubjectController
 
 from app.chat.infrastructure.database.session import get_supabase_client
-from app.chat.infrastructure.external.events import EventDispatcher # Assuming EventDispatcher is in this path
+from app.chat.infrastructure.external.events import EventDispatcher
 
 # --- Mock implementations for interfaces not fully provided ---
-# Replace these with your actual implementations if they differ.
-
-class MockEventDispatcher(EventDispatcher): # Inheriting to ensure it has the expected methods
+class MockEventDispatcher(EventDispatcher):
     async def dispatch(self, event):
-        # print(f"Dispatching event: {event.__class__.__name__}")
-        pass # Replace with actual event dispatching logic
+        pass
 
 
-class MockRAGProvider: # Simple mock for RAG provider
+class MockRAGProvider:
     async def get_context_chunks(self, query: str) -> list[str]:
         return []
 
@@ -55,7 +52,7 @@ def get_study_subject_controller(
 ) -> StudySubjectController:
     """Provides the StudySubjectController instance."""
     study_subject_repo = StudySubjectRepository(client=client)
-    event_dispatcher = MockEventDispatcher() # Replace with your actual EventDispatcher
+    event_dispatcher = MockEventDispatcher()
 
     create_study_subject_uc = CreateStudySubjectUseCase(
         study_subject_repo=study_subject_repo,
@@ -80,11 +77,9 @@ def get_resource_controller(
 ) -> ResourceController:
     """Provides the ResourceController instance."""
     resource_repo = ResourceRepository(client=client)
-    study_subject_repo = StudySubjectRepository(client=client) # Needed for UploadResourceUseCase
-    chunks_repo = ChunksRepository(client=client) # Needed for SplitResourcesIntoChunksUseCase
-    event_dispatcher = MockEventDispatcher() # Replace with your actual EventDispatcher
+    study_subject_repo = StudySubjectRepository(client=client)
+    event_dispatcher = MockEventDispatcher()
 
-    # Services needed by UploadResourceUseCase
     extract_text_from_image_locally_service = ExtractTextFromImageLocallyService()
     extract_text_from_image_with_gemini_service = ExtractTextFromImageWithGeminiService()
     extract_text_from_pdf_service = ExtractTextFromPdfService()
@@ -93,10 +88,6 @@ def get_resource_controller(
     file_handler_service = FileHandlerService()
     transcribe_audio_service = TranscribeAudioService()
     youtube_video_transcript_service = YoutubeVideoTranscriptService()
-    slice_document_into_chunks_service = SliceDocumentIntoChunksService()
-    vectorize_chunk_service = VectorizeChunkService()
-    execute_vector_search_service = ExecuteVectorSearchService()
-
 
     upload_resource_uc = UploadResourceUseCase(
         resource_repo=resource_repo,
@@ -126,19 +117,38 @@ def get_resource_controller(
         fetch_all_resources_uc=fetch_all_resources_uc,
     )
 
+# New Cross-Module Dependency Provider
+def get_provide_relevant_chunks_use_case(
+    client: AsyncClient = Depends(get_supabase_client)
+) -> ProvideRelevantChunksUseCase:
+    """
+    Exposes the RAG retrieval engine standalone.
+    This allows the Chat/Message module to call vector lookups inside its WebSockets router.
+    """
+    chunks_repo = ChunksRepository(client=client)
+    event_dispatcher = MockEventDispatcher()
+    execute_vector_search_service = ExecuteVectorSearchService()
+    vectorize_chunk_service = VectorizeChunkService()
+
+    return ProvideRelevantChunksUseCase(
+        chunks_repo=chunks_repo,
+        event_dispatcher=event_dispatcher,
+        execute_vector_search_service=execute_vector_search_service,
+        vectorize_chunk_service=vectorize_chunk_service,
+    )
+
 def get_chunks_controller(
     client: AsyncClient = Depends(get_supabase_client),
+    provide_relevant_chunks_uc: ProvideRelevantChunksUseCase = Depends(get_provide_relevant_chunks_use_case)
 ) -> ChunksController:
-    """Provides the ChunksController instance."""
+    """Provides the ChunksController instance using the shared query use case hook."""
     chunks_repo = ChunksRepository(client=client)
     resource_repo = ResourceRepository(client=client)
     study_subject_repo = StudySubjectRepository(client=client)
-    event_dispatcher = MockEventDispatcher() # Replace with your actual EventDispatcher
+    event_dispatcher = MockEventDispatcher()
 
-    # Services needed for chunking and vectorization
     slice_document_service = SliceDocumentIntoChunksService()
     vectorize_chunk_service = VectorizeChunkService()
-    execute_vector_search_service = ExecuteVectorSearchService()
 
     split_resources_into_chunks_uc = SplitResourcesIntoChunksUseCase(
         resource_repo=resource_repo,
@@ -152,12 +162,7 @@ def get_chunks_controller(
         event_dispatcher=event_dispatcher,
         vectorize_chunk_service=vectorize_chunk_service,
     )
-    provide_relevant_chunks_uc = ProvideRelevantChunksUseCase(
-        chunks_repo=chunks_repo,
-        event_dispatcher=event_dispatcher,
-        execute_vector_search_service=execute_vector_search_service,
-        vectorize_chunk_service=vectorize_chunk_service,
-    )
+    
     return ChunksController(
         split_resources_into_chunks_uc=split_resources_into_chunks_uc,
         vectorize_chunks_uc=vectorize_chunks_uc,

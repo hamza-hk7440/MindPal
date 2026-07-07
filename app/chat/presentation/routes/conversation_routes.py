@@ -1,4 +1,3 @@
-from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from chat.presentation.schemas.conversation_schema import CreateConversationRequest, ConversationResponse
 from chat.presentation.controllers.conversation_controller import ConversationController
