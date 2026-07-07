@@ -61,14 +61,28 @@ class StudySubjectController:
                 detail=f"Deletable context target missing: {str(exc)}"
             )
 
-    async def fetch_study_subjects(self) -> List[StudySubjectResponse]:
+    async def fetch_study_subjects(self, user_id: UUID) -> List[StudySubjectResponse]:
         """
         Queries application read layer collections. 
         Safely serializes domain core structural arrays into clear interface contracts.
         """
-        study_subjects_dto = await self._fetch_uc.fetch_all()
-        
-        return [
-            StudySubjectResponse.model_validate(subject) 
-            for subject in study_subjects_dto
-        ]
+        try:
+            study_subjects_dto = await self._fetch_uc.fetch_all_study_subjects(user_id=user_id)
+            
+            if study_subjects_dto and isinstance(study_subjects_dto[0], list):
+                study_subjects_dto = study_subjects_dto[0]  # Unwrap the first element if it's a list of lists 
+            
+            return [
+                StudySubjectResponse(
+                    id=subject.id,
+                    user_id=subject.user_id,
+                    name=subject.name.value if hasattr(subject.name, 'value') else subject.name,
+                    created_at=subject.created_at
+                )
+                for subject in study_subjects_dto
+            ]
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"mapping failed: {str(e)}"
+            )

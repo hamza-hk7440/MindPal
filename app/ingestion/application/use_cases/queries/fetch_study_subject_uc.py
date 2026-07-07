@@ -16,8 +16,8 @@ class FetchStudySubjectUseCase:
         if not study_subject:
             raise StudySubjectNotFoundException(f"Study subject with ID {subject_id} not found.")
         return study_subject
-    async def fetch_all_study_subjects(self) -> list[StudySubject]:
-        event = GetAllStudySubjectsEvent()
+    async def fetch_all_study_subjects(self, user_id: UUID) -> list[StudySubject]:
+        event = GetAllStudySubjectsEvent(user_id=user_id)
         await self.event_dispatcher.dispatch(event)
-        study_subjects = await self.study_subject_repo.get_all_study_subjects()
+        study_subjects = await self.study_subject_repo.get_all_study_subjects(user_id=user_id)
         return study_subjects

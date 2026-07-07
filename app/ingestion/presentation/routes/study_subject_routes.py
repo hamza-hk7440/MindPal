@@ -44,7 +44,7 @@ async def fetch_study_subject(
     study_subject_id: UUID,  # Upgraded to strict UUID typing
     controller: StudySubjectController = Depends(get_study_subject_controller)
 ) -> StudySubjectResponse:
-    return await controller.fetch_study_subject(study_subject_id)
+    return await controller.fetch_study_subjects(study_subject_id)
 
 
 @router.get(
@@ -53,9 +53,10 @@ async def fetch_study_subject(
     summary="Fetch all available study subjects"
 )
 async def fetch_all_study_subjects(
+    user_id: UUID,
     controller: StudySubjectController = Depends(get_study_subject_controller)
 ) -> List[StudySubjectResponse]:
-    return await controller.fetch_all_study_subjects()
+    return await controller.fetch_study_subjects(user_id=user_id)
 
 
 @router.get(
