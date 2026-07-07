@@ -1,5 +1,5 @@
 from ingestion.application.services.execute_vector_search_service import IExecuteVectorSearchService
-from app.chat.infrastructure.database.session import get_supabase_client
+from chat.infrastructure.database.session import get_supabase_client
 from uuid import UUID
 class ExecuteVectorSearchService(IExecuteVectorSearchService):
     async def execute_vector_search(self, query_vector: list[float], threshold: float,count: int,filter_subject_id: UUID):

@@ -3,7 +3,7 @@ from uuid import UUID
 from supabase import AsyncClient
 from ingestion.domain.entities.chunks_entity import Chunk
 from ingestion.domain.interfaces.chunks_repo import IChunksRepository
-from app.chat.infrastructure.config.settings import settings
+from chat.infrastructure.config.settings import settings
 
 class ChunksRepository(IChunksRepository):
     def __init__(self, client: AsyncClient):
@@ -87,4 +87,12 @@ class ChunksRepository(IChunksRepository):
             "content": chunk.content,
         }
         await self._table().update(data).eq("id", str(chunk.id)).execute()
+    async def add(self, chunk: Chunk) -> None:
+        await self.save_chunk(chunk)
+    async def get(self, entity_id: UUID) -> Chunk | None:
+        return await self.get_chunk_by_id(entity_id)
+    async def update(self, chunk: Chunk) -> None:
+        await self.update_chunk(chunk)
+    async def delete(self, entity_id: UUID) -> None:
+        await self.delete_chunk(entity_id)
         

@@ -32,9 +32,9 @@ class CreateStudySubjectUseCase:
         await self.event_dispatcher.dispatch(event)
         # Return a DTO representation of the study subject
         return CreateStudySubjectDTO(
-            id=study_subject.id,
-            user_id=study_subject.user_id,
-            name=study_subject.name,
+            id=str(study_subject.id),
+            user_id=str(study_subject.user_id),
+            name=study_subject.name.value,
             created_at=study_subject.created_at
         )
     async def execute(self, user_id: UUID, name: str) -> CreateStudySubjectDTO:

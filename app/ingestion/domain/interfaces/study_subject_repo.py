@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List, Optional, Tuple
 
 from ingestion.domain.entities.study_subject_entity import StudySubject
-from app.chat.domain.interfaces.base import IRepository
+from chat.domain.interfaces.base import IRepository
 
 class IStudySubjectRepository(IRepository[StudySubject]):
     

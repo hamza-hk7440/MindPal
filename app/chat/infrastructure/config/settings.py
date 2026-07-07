@@ -19,5 +19,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str | None = Field(default=None, env="DATABASE_URL")
     SUPABASE_CONVERSATIONS_TABLE: str = Field(default="Conversations", env="SUPABASE_CONVERSATIONS_TABLE")
     SUPABASE_MESSAGES_TABLE: str = Field(default="Messages", env="SUPABASE_MESSAGES_TABLE")
+    SUPABASE_STUDY_SUBJECTS_TABLE: str = Field(default="Study_subject", env="SUPABASE_STUDY_SUBJECTS_TABLE")
+    SUPABASE_RESOURCES_TABLE: str = Field(default="Sources", env="SUPABASE_RESOURCES_TABLE")
+    SUPABASE_CHUNKS_TABLE: str = Field(default="Chunks", env="SUPABASE_CHUNKS_TABLE")
 
 settings = Settings()

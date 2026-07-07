@@ -1,7 +1,7 @@
 
 from google.genai import types
 from ingestion.application.services.extract_text_from_image_with_gemini_service import IExtractTextFromImageWithGeminiService
-from app.chat.infrastructure.config.settings import settings
+from chat.infrastructure.config.settings import settings
 import google.generativeai as genai
 class ExtractTextFromImageWithGeminiService(IExtractTextFromImageWithGeminiService):
     async def extract_text_from_image(self, image_bytes: bytes) -> str:

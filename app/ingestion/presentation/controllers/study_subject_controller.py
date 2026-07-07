@@ -34,19 +34,19 @@ class StudySubjectController:
         Maps inbound application layer DTO models down to Pydantic representation layers.
         """
         try:
+            # FIX: Pass both parameters that the usecase execute method requires
             study_subject_dto = await self._create_uc.execute(
-                name=request.name,
-                created_at=request.created_at
+                user_id=request.user_id, # Ensure your CreateStudySubjectRequest schema has user_id
+                name=request.name
             )
             # Upgraded from from_orm to standard modern Pydantic v2 model validation
             return StudySubjectResponse.model_validate(study_subject_dto)
             
-        except IngestionValidationException as exc:
+        except (IngestionValidationException, ValueError) as exc: # Added ValueError just in case your input validation fails
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(exc)
             )
-
     async def delete_study_subject(self, subject_id: UUID) -> None:
         """
         Dispatches target ID coordinates to the application command line.

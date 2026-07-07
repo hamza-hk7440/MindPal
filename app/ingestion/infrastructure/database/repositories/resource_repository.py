@@ -3,7 +3,7 @@ from uuid import UUID
 from supabase import AsyncClient
 from ingestion.domain.entities.resource_entity import Resource
 from ingestion.domain.interfaces.resource_repo import IResourceRepository
-from app.chat.infrastructure.config.settings import settings
+from chat.infrastructure.config.settings import settings
 from ingestion.domain.value_objects.type import Doc_type
 
 class ResourceRepository(IResourceRepository):
@@ -154,3 +154,11 @@ class ResourceRepository(IResourceRepository):
         if not rows:
             return None
         return rows[0].get("content")
+    async def add(self, resource: Resource) -> None:
+        await self.save_resource(resource)
+    async def get(self, entity_id: UUID) -> Resource | None:
+        return await self.get_resource_by_id(entity_id)
+    async def update(self, resource: Resource) -> None:
+        await self.update_resource(resource)
+    async def delete(self, entity_id: UUID) -> None:
+        await self.delete_resource(entity_id, soft_delete=True)

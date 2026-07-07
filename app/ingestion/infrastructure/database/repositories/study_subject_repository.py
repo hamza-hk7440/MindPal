@@ -5,7 +5,7 @@ from supabase import AsyncClient
 from ingestion.domain.entities.study_subject_entity import StudySubject, Name
 
 from ingestion.domain.interfaces.study_subject_repo import IStudySubjectRepository
-from app.chat.infrastructure.config.settings import settings
+from chat.infrastructure.config.settings import settings
 
 class StudySubjectRepository(IStudySubjectRepository):
     def __init__(self, client: AsyncClient):
@@ -121,3 +121,11 @@ class StudySubjectRepository(IStudySubjectRepository):
         if not value:
             return None
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    async def add(self, study_subject: StudySubject) -> None:
+        await self.save_study_subject(study_subject)
+    async def get(self, entity_id: UUID) -> StudySubject | None:
+        return await self.get_study_subject_by_id(entity_id)
+    async def update(self, study_subject: StudySubject) -> None:
+        await self.update_study_subject(study_subject)
+    async def delete(self, entity_id: UUID) -> None:
+        await self.delete_study_subject(entity_id)

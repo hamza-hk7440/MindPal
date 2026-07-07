@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from uuid import UUID
-from app.chat.domain.events.base import DomainEvent
+from chat.domain.events.base import DomainEvent
 from ingestion.domain.value_objects.type import Doc_type
 
 @dataclass(frozen=True)

@@ -15,11 +15,11 @@ from chat.presentation.controllers.conversation_controller import ConversationCo
 from chat.presentation.controllers.message_controller import MessageController
 from chat.domain.interfaces.rag_provider import IRAGProvider
 
-
+# This mock provider bypasses the broken ingestion ChunksRepository 
+# so your WebSocket won't crash during testing!
 class _EmptyRAGProvider(IRAGProvider):
     async def get_context_chunks(self, query: str) -> list[str]:
-        return []
-
+        return ["This is a mock text chunk context passed to the model for test stability."]
 
 def get_message_controller(
     client: AsyncClient = Depends(get_supabase_client),
@@ -29,7 +29,7 @@ def get_message_controller(
     event_dispatcher = EventDispatcher()
     gemini_service = GeminiClient()
     llama2_service = Llama2Client()
-    rag_provider = _EmptyRAGProvider()
+    rag_provider = _EmptyRAGProvider() # Using the safe mock provider here
 
     send_message_uc = SendMessageUseCase(
         message_repo=message_repo,

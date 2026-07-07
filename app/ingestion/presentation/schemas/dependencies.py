@@ -32,8 +32,8 @@ from ingestion.presentation.controllers.chunks_controller import ChunksControlle
 from ingestion.presentation.controllers.resource_controller import ResourceController
 from ingestion.presentation.controllers.study_subject_controller import StudySubjectController
 
-from app.chat.infrastructure.database.session import get_supabase_client
-from app.chat.infrastructure.external.events import EventDispatcher
+from chat.infrastructure.database.session import get_supabase_client
+from chat.infrastructure.external.events import EventDispatcher
 
 # --- Mock implementations for interfaces not fully provided ---
 class MockEventDispatcher(EventDispatcher):

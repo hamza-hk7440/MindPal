@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List, Optional, Tuple
 
 from ingestion.domain.entities.resource_entity import Resource
-from app.chat.domain.interfaces.base import IRepository
+from chat.domain.interfaces.base import IRepository
 
 class IResourceRepository(IRepository[Resource]):
     

@@ -1,14 +1,20 @@
+# chat/infrastructure/external/gemini_client.py
+
+from google import genai
+from google.genai import errors
+from fastapi import status, HTTPException
+from typing import AsyncGenerator
+
 from chat.application.services.gemini_service import IGeminiService
 from chat.infrastructure.config.settings import settings
-import google.generativeai as genai
 
 
 class GeminiClient(IGeminiService):
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model=genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-        )
+        # Migrated to the modern google-genai initialization engine
+        self._client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self._model = "gemini-2.5-flash"  # Production grade lightweight model perfect for low-latency streaming
+
     async def serialize_fetch_messages(self, messages: list) -> str:
         """
         Serializes a list of messages into a string format suitable for the Gemini model.
@@ -16,14 +22,15 @@ class GeminiClient(IGeminiService):
         """
         serialized_messages = []
         for message in messages:
-            role = message.sender.value  # Assuming sender is an Enum with a value attribute
+            # Safely handle both standard DTO objects and orm attributes
+            role = message.sender.value if hasattr(message.sender, 'value') else str(message.sender)
             content = message.content
             serialized_messages.append(f"{role}: {content}")
         return "\n".join(serialized_messages)
-    
-    async def send_message_to_gemini(self,cleaned_context: str, conversation_id: str, message: str,chat_history: list) -> str:
-        chat_history_as_string = await self.serialize_fetch_messages(chat_history)
-        formatted_prompt=f"""
+
+    def _build_system_prompt(self, cleaned_context: str, chat_history_as_string: str, message: str) -> str:
+        """Helper to centralize your strict academic prompt rules."""
+        return f"""
         You are an AI assistant helping students with their course materials.
         If the student asks a question depends on previous discussions with you in the conversation, you should consider the previous messages in the conversation to provide a more accurate and helpful answer.
         Chat History:
@@ -51,5 +58,45 @@ class GeminiClient(IGeminiService):
 
         Important: Do not make up answers or provide information that is not present in the relevant chunks. If the relevant chunks do not contain enough information to answer the question, please respond with "Your current documents don't underline this detail."
         """
-        response = self.model.generate_content(formatted_prompt)
-        return response.text
+
+    async def send_message_to_gemini(self, cleaned_context: str, conversation_id: str, message: str, chat_history: list) -> str:
+        """Legacy synchronous endpoint wrapper migrated to new SDK signatures."""
+        try:
+            chat_history_as_string = await self.serialize_fetch_messages(chat_history)
+            formatted_prompt = self._build_system_prompt(cleaned_context, chat_history_as_string, message)
+            
+            # Formatted under modern pluralized 'contents' parameter configuration rule
+            response = self._client.models.generate_content(
+                model=self._model,
+                contents=formatted_prompt
+            )
+            return response.text
+        except errors.APIError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Gemini API Exception: {str(exc)}"
+            )
+
+    async def stream_message_to_gemini(self, chunks: list[str], conversation_id: str, message: str, chat_history: list) -> AsyncGenerator[str, None]:
+        """
+        NEW: Streams chunk tokens directly from the Gemini model using the new generate_content_stream engine.
+        """
+        try:
+            # Flatten array of text chunks into a readable continuous context string
+            cleaned_context = "\n\n".join(chunks) if isinstance(chunks, list) else str(chunks)
+            chat_history_as_string = await self.serialize_fetch_messages(chat_history)
+            formatted_prompt = self._build_system_prompt(cleaned_context, chat_history_as_string, message)
+
+            # Fire the active HTTP network stream connection bundle
+            response_stream = self._client.models.generate_content_stream(
+                model=self._model,
+                contents=formatted_prompt
+            )
+
+            # Iterate over incoming text fragment buffers and pass them back up to the Controller layer
+            for response_chunk in response_stream:
+                if response_chunk.text:
+                    yield response_chunk.text
+
+        except errors.APIError as exc:
+            yield f"\n[ERROR: Gemini streaming generation aborted: {str(exc)}]"

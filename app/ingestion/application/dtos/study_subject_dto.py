@@ -5,6 +5,8 @@ from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
 
 class CreateStudySubjectDTO(BaseModel):
+    id: Annotated[UUID, Field(description="The unique identifier of the study subject.")]
+    user_id: Annotated[UUID, Field(description="The unique identifier of the user associated with the study subject.")]
     name: Annotated[str, Field(min_length=1, max_length=255)]
     created_at: Annotated[datetime | None, Field(description="The timestamp when the study subject was created.")] = None
     model_config=ConfigDict(
@@ -19,6 +21,7 @@ class CreateStudySubjectDTO(BaseModel):
 class StudySubjectDTO(BaseModel):
     id: Annotated[UUID, Field(description="The unique identifier of the study subject.")]
     name: Annotated[str, Field(min_length=1, max_length=255)]
+    user_id: Annotated[UUID, Field(description="The unique identifier of the user associated with the study subject.")]
     created_at: Annotated[datetime | None, Field(description="The timestamp when the study subject was created.")] = None
     model_config=ConfigDict(
         extra="forbid",

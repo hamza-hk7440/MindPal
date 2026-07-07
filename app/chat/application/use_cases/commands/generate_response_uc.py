@@ -13,7 +13,7 @@ from chat.infrastructure.config.settings import settings
 from chat.application.use_cases.queries.fetch_message import FetchMessageUseCase
 from uuid import UUID
 
-
+from typing import AsyncGenerator
 class GenerateResponseUseCase:
     def __init__(
         self,
@@ -72,3 +72,41 @@ class GenerateResponseUseCase:
             sender=response_message.sender,
             created_at=response_message.created_at
         )
+    async def execute_stream(self, conversation_id: UUID, content: str) -> AsyncGenerator[str, None]:
+        """
+        Executes a RAG response generation cycle, streaming individual text tokens live, 
+        and persisting the fully aggregated response to the DB upon completion.
+        """
+        # 1. Validation and Setup
+        await self._validate_message_input(content, Role.AI, conversation_id)
+        chat_history = await FetchMessageUseCase(
+            self.message_repo, self.event_dispatcher, self.conversation_repo
+        ).fetch_messages_by_conversation_id(conversation_id)
+        
+        # 2. RAG Context Lookup (Cross-module dependency call to Ingestion module)
+        chunks = await self.rag_provider.get_context_chunks(content)
+
+        # 3. Stream from LLM Service and collect full text for database storage
+        full_response_text = ""
+        
+        # FORCED FOR LOCAL TESTING: Bypassing Llama2Client fallback to prevent attribute crash
+        async for token in self.gemini_service.stream_message_to_gemini(chunks, conversation_id, content, chat_history):
+            full_response_text += token
+            yield token
+
+        # 4. Post-Stream Persistence (Save the completely aggregated AI output)
+        response_message = ChatMessage.create(
+            conversation_id=conversation_id, 
+            content=full_response_text, 
+            sender=Role.AI
+        )
+        await self.message_repo.save_message(response_message)
+        
+        # 5. Event dispatching
+        event = SendMessageEvent(
+            message_id=response_message.id,
+            conversation_id=response_message.conversation_id,
+            content=response_message.content.value,
+            sender=response_message.sender
+        )
+        await self.event_dispatcher.dispatch(event)

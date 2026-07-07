@@ -4,12 +4,12 @@ from uuid import UUID
 
 class CreateStudySubjectRequest(BaseModel):
     name:str
-    created_at:datetime
+    user_id:UUID
     class Config:
         from_attributes = True
 class StudySubjectResponse(BaseModel):
-    id:UUID 
+    user_id:UUID 
     name:str
-    created_at:datetime
+    id:UUID
     class Config:
         from_attributes = True

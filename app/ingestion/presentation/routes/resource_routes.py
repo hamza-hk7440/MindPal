@@ -2,8 +2,6 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status, WebSocket, WebSocketDisconnect
 from typing import List
 import asyncio
-import json
-
 # Presentation Schema Context
 from ingestion.presentation.schemas.resource_schema import AddResourceRequest
 # Dependency Injection Components
