@@ -5,7 +5,6 @@ Main entry point for user_management system.
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from chat.presentation.api_router import api_router
 from ingestion.presentation.api_router import api_router as ingestion_api_router
 from chat.application.exceptions.exception import (
@@ -24,13 +23,7 @@ async def lifespan(app: FastAPI):
 
 
 app=FastAPI(title="MindPal Chat API", version="1.0.0", lifespan=lifespan)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins during local development/testing
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 app.add_exception_handler(InvalidMessageException, exception_handler)
 app.add_exception_handler(ConversationNotFoundException, exception_handler)
 app.add_exception_handler(ConversationCreationFailureException, exception_handler)

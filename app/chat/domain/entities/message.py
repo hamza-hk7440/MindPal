@@ -1,9 +1,9 @@
+from chat.domain.exceptions.domain_exceptions import (InvalidEntityException)
 from dataclasses import dataclass
 from datetime import datetime,timezone
 from uuid import UUID, uuid4
 
 from chat.domain.value_objects.message_objects import Role
-from chat.domain.exceptions.domain_exceptions import (InvalidEntityException)
 
 @dataclass(frozen=True)
 class Content:
