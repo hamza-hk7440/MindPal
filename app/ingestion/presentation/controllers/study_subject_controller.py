@@ -1,21 +1,22 @@
 from typing import List
 from uuid import UUID
 from fastapi import status, HTTPException
+import logging
 
-# Presentation Layer Schema Context
 from ingestion.presentation.schemas.study_subject_schema import (
     StudySubjectResponse, 
     CreateStudySubjectRequest
 )
-# Application Layer Use Case Contracts
 from ingestion.application.use_cases.commands.create_study_subject_uc import CreateStudySubjectUseCase
 from ingestion.application.use_cases.commands.delete_study_subject_uc import DeleteStudySubjectUseCase
 from ingestion.application.use_cases.queries.fetch_study_subject_uc import FetchStudySubjectUseCase
-# Application Layer Structural Exception Boundaries
 from ingestion.application.exceptions.exceptions import (
     ResourceNotFoundException, 
-    IngestionValidationException
+    IngestionValidationException,
+    StudySubjectNotFoundException
 )
+
+logger = logging.getLogger("mindpal.ingestion.presentation")
 
 class StudySubjectController:
     def __init__(
@@ -29,60 +30,80 @@ class StudySubjectController:
         self._fetch_uc = fetch_study_subject_uc
 
     async def create_study_subject(self, request: CreateStudySubjectRequest) -> StudySubjectResponse:
-        """
-        Coordinates the orchestration payload for provisioning a new domain entity.
-        Maps inbound application layer DTO models down to Pydantic representation layers.
-        """
+        logger.info(f"Initiating study subject provisioning: Name='{request.name}' for User='{request.user_id}'")
         try:
-            # FIX: Pass both parameters that the usecase execute method requires
             study_subject_dto = await self._create_uc.execute(
-                user_id=request.user_id, # Ensure your CreateStudySubjectRequest schema has user_id
+                user_id=request.user_id,
                 name=request.name
             )
-            # Upgraded from from_orm to standard modern Pydantic v2 model validation
-            return StudySubjectResponse.model_validate(study_subject_dto)
+            return self._map_to_response_schema(study_subject_dto)
             
-        except (IngestionValidationException, ValueError) as exc: # Added ValueError just in case your input validation fails
+        except (IngestionValidationException, ValueError) as exc:
+            logger.warning(f"Validation constraints breached during entity creation: {str(exc)}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(exc)
             )
+        except Exception as exc:
+            logger.error(f"Unhandled systemic exception during entity provisioning: {str(exc)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An internal structural error occurred while executing the transaction."
+            )
+
     async def delete_study_subject(self, subject_id: UUID) -> None:
-        """
-        Dispatches target ID coordinates to the application command line.
-        Enforces UUID type safety at the route boundary wrapper layer.
-        """
+        logger.info(f"Requesting removal of context boundary target: SubjectID='{subject_id}'")
         try:
             await self._delete_uc.execute(subject_id=subject_id)
+            logger.info(f"Successfully deleted study subject context target: ID='{subject_id}'")
             
-        except ResourceNotFoundException as exc:
+        except (ResourceNotFoundException, StudySubjectNotFoundException) as exc:
+            logger.warning(f"Target clear execution aborted. Resource absent: {str(exc)}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Deletable context target missing: {str(exc)}"
+                detail=str(exc)
+            )
+        except Exception as exc:
+            logger.error(f"Lifecycle collapse during entity drop: {str(exc)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Transaction cancellation failed due to system exception."
             )
 
     async def fetch_study_subjects(self, user_id: UUID) -> List[StudySubjectResponse]:
-        """
-        Queries application read layer collections. 
-        Safely serializes domain core structural arrays into clear interface contracts.
-        """
+        logger.info(f"Querying system data read layers for collection collection: User='{user_id}'")
         try:
-            study_subjects_dto = await self._fetch_uc.fetch_all_study_subjects(user_id=user_id)
+            raw_collection = await self._fetch_uc.fetch_all_study_subjects(user_id=user_id)
             
-            if study_subjects_dto and isinstance(study_subjects_dto[0], list):
-                study_subjects_dto = study_subjects_dto[0]  # Unwrap the first element if it's a list of lists 
+            if raw_collection and isinstance(raw_collection[0], list):
+                logger.debug("Normalizing multidimensional collection payload matrix down to flat stream array.")
+                raw_collection = raw_collection[0]
             
-            return [
-                StudySubjectResponse(
-                    id=subject.id,
-                    user_id=subject.user_id,
-                    name=subject.name.value if hasattr(subject.name, 'value') else subject.name,
-                    created_at=subject.created_at
-                )
-                for subject in study_subjects_dto
-            ]
-        except Exception as e:
+            return [self._map_to_response_schema(subject) for subject in raw_collection]
+            
+        except IngestionValidationException as exc:
+            logger.warning(f"Query payload rejected by core validation layer: {str(exc)}")
             raise HTTPException(
-                status_code=400,
-                detail=f"mapping failed: {str(e)}"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(exc)
             )
+        except Exception as exc:
+            logger.critical(f"Data layer mapping error or connectivity termination: {str(exc)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to compile and transform query collection results."
+            )
+
+    def _map_to_response_schema(self, domain_object) -> StudySubjectResponse:
+        try:
+            raw_name = domain_object.name.value if hasattr(domain_object.name, 'value') else domain_object.name
+            
+            return StudySubjectResponse(
+                id=domain_object.id,
+                user_id=domain_object.user_id,
+                name=raw_name,
+                created_at=domain_object.created_at
+            )
+        except AttributeError as mapping_exc:
+            logger.error(f"Anti-corruption adapter structural mismatch error: {str(mapping_exc)}")
+            raise ValueError("Target domain model signature is missing essential data properties.")
