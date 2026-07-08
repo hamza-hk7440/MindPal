@@ -22,8 +22,10 @@ class ChunksRepository(IChunksRepository):
     def _to_entity(cls, row: dict) -> Chunk:
         return Chunk(
             id=UUID(str(row["id"])),
-            resource_id=UUID(str(row["resource_id"])),
+            source_id=UUID(str(row["source_id"])),
+            study_subject=UUID(str(row["study_subject"])),
             content=row.get("content"),
+            embedding=row.get("embedding"),
             created_at=cls._parse_datetime(row.get("created_at")),
         )
     async def get_chunk_by_id(self, chunk_id: UUID) -> Chunk | None:
@@ -39,18 +41,23 @@ class ChunksRepository(IChunksRepository):
             return None
         return self._to_entity(rows[0])
     async def save_chunk(self, chunk: Chunk) -> None:
-        data = {
+        embedding_data = chunk.embedding.to_list() 
+        
+        chunk_data = {
             "id": str(chunk.id),
-            "resource_id": str(chunk.resource_id),
-            "content": chunk.content,
+            "source_id": str(chunk.source_id),
+            "study_subject": str(chunk.study_subject),
+            "content": str(chunk.content),
+            "embedding": embedding_data,
             "created_at": chunk.created_at.isoformat() if chunk.created_at else None,
         }
-        await self._table().upsert(data).execute()
+        await self._table().upsert(chunk_data).execute()
     async def save_chunks_batch(self, chunks: list[Chunk]) -> None:
         data = [
             {
                 "id": str(chunk.id),
-                "resource_id": str(chunk.resource_id),
+                "source_id": str(chunk.source_id),
+                "study_subject": str(chunk.study_subject),
                 "content": chunk.content,
                 "created_at": chunk.created_at.isoformat() if chunk.created_at else None,
             }
@@ -61,7 +68,7 @@ class ChunksRepository(IChunksRepository):
         response = await self._table().delete().eq("id", str(chunk_id)).execute()
         return response.status_code == 200
     async def delete_all_chunks_by_resource(self, resource_id: UUID) -> int:
-        response = await self._table().delete().eq("resource_id", str(resource_id)).execute()
+        response = await self._table().delete().eq("source_id", str(resource_id)).execute()
         return len(response.data or [])
     async def get_all_chunks(
         self, 
@@ -72,7 +79,7 @@ class ChunksRepository(IChunksRepository):
         response = await (
             self._table()
             .select("*", count="exact")
-            .eq("resource_id", str(resource_id))
+            .eq("source_id", str(resource_id))
             .limit(limit)
             .offset(offset)
             .execute()
@@ -83,8 +90,10 @@ class ChunksRepository(IChunksRepository):
         return chunks, total_count
     async def update_chunk(self, chunk: Chunk) -> None:
         data = {
-            "resource_id": str(chunk.resource_id),
+            "source_id": str(chunk.source_id),
+            "study_subject": str(chunk.study_subject),
             "content": chunk.content,
+            "embedding": chunk.embedding,
         }
         await self._table().update(data).eq("id", str(chunk.id)).execute()
     async def add(self, chunk: Chunk) -> None:

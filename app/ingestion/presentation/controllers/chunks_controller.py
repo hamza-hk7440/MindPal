@@ -26,12 +26,12 @@ class ChunksController:
         self._vectorize_uc = vectorize_chunks_uc
         self._provide_relevant_uc = provide_relevant_chunks_uc
 
-    async def split_resources_into_chunks(self, resource_id: UUID) -> List[Chunk]:
+    async def split_resources_into_chunks(self, resource_id: UUID, study_subject_id: UUID) -> List[Chunk]:
         """
         Retrieves a text resource asset and processes it through the text-splitting engine.
         """
         try:
-            chunks_dto = await self._split_uc.execute(resource_id=resource_id)
+            chunks_dto = await self._split_uc.execute(resource_id=resource_id, study_subject_id=study_subject_id)
             return [Chunk.model_validate(chunk) for chunk in chunks_dto]
             
         except ResourceNotFoundException as exc:

@@ -8,9 +8,9 @@ from ingestion.presentation.controllers.chunks_controller import ChunksControlle
 
 router = APIRouter(prefix="/chunks", tags=["Chunks Ingestion"])
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=dict)
-async def add_chunk(chunk: Chunk, controller: ChunksController = Depends(get_chunks_controller)):
-    return await controller.add_chunk(chunk)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=List[Chunk])
+async def add_chunk(study_subject_id: UUID, resource_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
+    return await controller.split_resources_into_chunks(resource_id=resource_id, study_subject_id=study_subject_id)
 
 @router.delete("/{chunk_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chunk(chunk_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
