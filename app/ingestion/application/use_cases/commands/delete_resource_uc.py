@@ -28,5 +28,5 @@ class DeleteResourceUseCase:
         await self.resource_repo.delete_resource(resource_id)
 
         # Dispatch an event indicating that the resource has been deleted
-        event = DeleteResourceEvent(resource_id=resource_id, subject_id=resource.subject_id)
+        event = DeleteResourceEvent(resource_id=resource_id)
         await self.event_dispatcher.dispatch(event)

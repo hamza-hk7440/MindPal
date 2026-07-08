@@ -23,6 +23,8 @@ class ResourceResponse(BaseModel):
     doc_url: Optional[str]= None
     doc_type: Doc_type
     content: Optional[str]= None
-    class Config:
-        from_attributes = True
-        use_enum_values = True
+
+    model_config = {
+        "from_attributes": True,
+        "use_enum_values": True
+    }

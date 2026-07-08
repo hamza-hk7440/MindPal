@@ -90,3 +90,4 @@ class ResourceController:
             ResourceResponse.model_validate(resource) 
             for resource in resources_dto
         ]
+    

@@ -2,6 +2,7 @@ from uuid import UUID
 from fastapi import File,UploadFile,Form,APIRouter, Depends, status, WebSocket, WebSocketDisconnect
 from typing import List,Optional
 import asyncio
+from ingestion.presentation.schemas.resource_schema import ResourceResponse
 from ingestion.presentation.schemas.dependencies import get_resource_controller
 from ingestion.presentation.controllers.resource_controller import ResourceController
 
@@ -78,50 +79,15 @@ async def delete_resource(
     controller: ResourceController = Depends(get_resource_controller)
 ) -> None:
     await controller.delete_resource(resource_id)
-
-
-@router.get(
-    "/{resource_id}", 
-    response_model=dict,
-    summary="Fetch a specific resource asset details"
-)
-async def fetch_resource(
-    resource_id: UUID, 
-    controller: ResourceController = Depends(get_resource_controller)
-) -> dict:
-    return await controller.fetch_resource(resource_id)
-
-
 @router.get(
     "/", 
-    response_model=List[dict],
-    summary="Fetch all ingested resources"
+    response_model=List[ResourceResponse],
+    summary="Fetch all ingested resources",
 )
 async def fetch_all_resources(
-    controller: ResourceController = Depends(get_resource_controller)
-) -> List[dict]:
-    return await controller.fetch_all_resources()
-
-
-@router.get(
-    "/study-subject/{study_subject_id}", 
-    response_model=List[dict],
-    summary="Fetch resources bound to a specific study subject"
-)
-async def fetch_resources_by_study_subject(
-    study_subject_id: UUID, 
-    controller: ResourceController = Depends(get_resource_controller)
-) -> List[dict]:
+    controller: ResourceController = Depends(get_resource_controller),
+    study_subject_id: UUID = None
+) -> List[ResourceResponse]:
     return await controller.fetch_all_resources(subject_id=study_subject_id)
 
 
-@router.get(
-    "/user/{user_id}", 
-    response_model=List[dict],
-    summary="Fetch resources created by a specific user"
-)
-async def fetch_resources_by_user(
-    user_id: UUID, 
-    controller: ResourceController = Depends(get_resource_controller)
-) -> List[dict]:
-    return await controller.fetch_resources_by_user(user_id)

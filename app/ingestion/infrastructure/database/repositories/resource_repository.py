@@ -23,8 +23,9 @@ class ResourceRepository(IResourceRepository):
             subject_id=UUID(str(row["subject_id"])),
             title=row["title"],
             content=row.get("content"),
-            doc_type=Doc_type(row.get("type")),
+            doc_type=Doc_type(row.get("doc_type")),
             created_at=cls._parse_datetime(row.get("created_at")),
+            doc_url=row.get("doc_url"),
         )
 
     # Added self parameter to match instance invocation context safely
@@ -73,13 +74,8 @@ class ResourceRepository(IResourceRepository):
         await self._table().update(data).eq("id", str(resource.id)).execute()
 
     async def delete_resource(self, resource_id: UUID, soft_delete: bool = True) -> bool:
-        if soft_delete:
-            # Replaced deprecated utcnow() with timezone-aware alternative
-            data = {"deleted_at": datetime.now(timezone.utc).isoformat()}
-            response = await self._table().update(data).eq("id", str(resource_id)).execute()
-        else:
-            response = await self._table().delete().eq("id", str(resource_id)).execute()
-        
+
+        response = await self._table().delete().eq("id", str(resource_id)).execute()
         # Check standard truthiness/length of data rather than raw HTTP client code strings
         return bool(response.data)
 
