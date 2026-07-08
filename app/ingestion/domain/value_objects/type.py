@@ -5,4 +5,4 @@ class Doc_type(enum.Enum):
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
-    TEXT = "text"
+    URL = "url"

@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
-from fastapi import status, HTTPException
+
+from chromadb import logger
+from fastapi import status, HTTPException,UploadFile
 
 # Presentation Layer Schema Context
-from ingestion.presentation.schemas.resource_schema import AddResourceRequest, ResourceResponse
+from ingestion.presentation.schemas.resource_schema import  ResourceResponse
 # Application Layer Use Case Contracts
 from ingestion.application.use_cases.commands.upload_resource_uc import UploadResourceUseCase
 from ingestion.application.use_cases.commands.delete_resource_uc import DeleteResourceUseCase
@@ -26,20 +28,26 @@ class ResourceController:
         self._delete_uc = delete_resource_uc
         self._fetch_all_uc = fetch_all_resources_uc
 
-    async def upload_resource(self, request: AddResourceRequest) -> ResourceResponse:
-        """
-        Coordinates the orchestration payload for uploading and parsing an asset.
-        Catches background extraction engine failures gracefully.
-        """
+    async def upload_resource(
+        self,
+        subject_id: UUID,
+        title: str,
+        doc_url: Optional[str],
+        file: Optional[UploadFile]
+    ) -> ResourceResponse:
         try:
+            file_bytes = None
+            if file:
+                file_bytes = await file.read() 
+                if not title:
+                    title = file.filename
+
             resource_dto = await self._upload_uc.execute(
-                id=request.id,
-                subject_id=request.subject_id,
-                created_at=request.created_at,
-                title=request.title,
-                doc_url=request.doc_url,
-                doc_type=request.doc_type,
-                content=request.content
+                subject_id=subject_id,
+                title=title,
+                doc_url=doc_url,
+                file_bytes=file_bytes,
+                file=file,
             )
             return ResourceResponse.model_validate(resource_dto)
             
@@ -53,7 +61,12 @@ class ResourceController:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Resource processing pipeline failed: {str(exc)}"
             )
-
+        except Exception as exc:
+            logger.error(f"Unhandled systemic exception during resource upload: {str(exc)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An internal structural error occurred while executing the transaction."
+            )
     async def delete_resource(self, resource_id: UUID) -> None:
         """
         Dispatches target ID coordinates to delete an ingested resource asset.

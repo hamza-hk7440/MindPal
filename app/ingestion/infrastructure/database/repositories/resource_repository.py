@@ -23,7 +23,7 @@ class ResourceRepository(IResourceRepository):
             subject_id=UUID(str(row["subject_id"])),
             title=row["title"],
             content=row.get("content"),
-            type=Doc_type(row.get("type")),
+            doc_type=Doc_type(row.get("type")),
             created_at=cls._parse_datetime(row.get("created_at")),
         )
 
@@ -49,23 +49,26 @@ class ResourceRepository(IResourceRepository):
             return None
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
-    async def save_resource(self, resource: Resource) -> None:
+    async def save_resource(self, resource: Resource) -> Resource:
+        # Unpack Domain Value Objects into primitive types before upserting
         data = {
             "id": str(resource.id),
             "subject_id": str(resource.subject_id),
-            "title": resource.title,
-            "content": resource.content,
-            "type": self._serialize_type(resource.type),
-            "created_at": resource.created_at.isoformat() if resource.created_at else None,
+            "title": resource.title.value if hasattr(resource.title, "value") else str(resource.title),
+            "doc_url": resource.doc_url.value if hasattr(resource.doc_url, "value") else str(resource.doc_url),
+            "doc_type": resource.doc_type.value if hasattr(resource.doc_type, "value") else str(resource.doc_type),
+            "content": resource.content.value if hasattr(resource.content, "value") else str(resource.content),
+            "created_at": resource.created_at.isoformat() if hasattr(resource.created_at, "isoformat") else resource.created_at
         }
-        await self._table().upsert(data).execute()
 
+        await self._table().upsert(data).execute()
+        return resource
     async def update_resource(self, resource: Resource) -> None:
         data = {
             "subject_id": str(resource.subject_id),
             "title": resource.title,
             "content": resource.content,
-            "type": self._serialize_type(resource.type),
+            "type": self._serialize_type(resource.doc_type),
         }
         await self._table().update(data).eq("id", str(resource.id)).execute()
 

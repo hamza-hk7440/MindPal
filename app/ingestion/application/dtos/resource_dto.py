@@ -11,7 +11,7 @@ class AddResourceDTO(BaseModel):
     title: Annotated[str, Field(min_length=1, max_length=255)]
     doc_url: Annotated[str, Field(min_length=1, max_length=2048)]
     doc_type: Annotated[Doc_type, Field(description="The type of the document (e.g., PDF, Video, etc.).")]
-    content: Annotated[str, Field(min_length=1, max_length=10000, description="The extracted content of the resource.")]
+    content: Annotated[str, Field(min_length=1, max_length=100000, description="The extracted content of the resource.")]
     model_config=ConfigDict(
         extra="forbid",
         json_schema_extra={

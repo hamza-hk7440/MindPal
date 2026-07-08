@@ -21,7 +21,7 @@ from ingestion.infrastructure.external.extract_text_from_image_locally_repositor
 from ingestion.infrastructure.external.extract_text_from_image_with_gemini_repository import ExtractTextFromImageWithGeminiService
 from ingestion.infrastructure.external.extract_text_from_pdf_repository import ExtractTextFromPdfService
 from ingestion.infrastructure.external.extract_video_id_repository import ExtractVideoIdService
-from ingestion.infrastructure.external.extract_bytes_from_url_service_repository import ExtraxtBytesFromUrlService
+from ingestion.infrastructure.external.extract_bytes_from_url_service_repository import ExtractBytesFromUrlService
 from ingestion.infrastructure.external.file_handler_repository import FileHandlerService
 from ingestion.infrastructure.external.slice_document_into_chunks_repository import SliceDocumentIntoChunksService
 from ingestion.infrastructure.external.transcribe_audio_service_repository import TranscribeAudioService
@@ -84,7 +84,7 @@ def get_resource_controller(
     extract_text_from_image_with_gemini_service = ExtractTextFromImageWithGeminiService()
     extract_text_from_pdf_service = ExtractTextFromPdfService()
     extract_video_id_service = ExtractVideoIdService()
-    extraxt_bytes_from_url_service = ExtraxtBytesFromUrlService()
+    extract_bytes_from_url_service = ExtractBytesFromUrlService()
     file_handler_service = FileHandlerService()
     transcribe_audio_service = TranscribeAudioService()
     youtube_video_transcript_service = YoutubeVideoTranscriptService()
@@ -93,13 +93,13 @@ def get_resource_controller(
         resource_repo=resource_repo,
         event_dispatcher=event_dispatcher,
         file_handler_service=file_handler_service,
-        extraxt_bytes_from_url_service=extraxt_bytes_from_url_service,
         extract_text_from_image_locally_service=extract_text_from_image_locally_service,
         extract_text_from_image_with_gemini_service=extract_text_from_image_with_gemini_service,
         extract_text_from_pdf_service=extract_text_from_pdf_service,
         transcribe_audio_service=transcribe_audio_service,
         youtube_video_transcript_service=youtube_video_transcript_service,
         extract_video_id_service=extract_video_id_service,
+        extract_bytes_from_url_service=extract_bytes_from_url_service,
     )
     delete_resource_uc = DeleteResourceUseCase(
         resource_repo=resource_repo,

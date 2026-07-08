@@ -20,5 +20,5 @@ class DeleteStudySubjectUseCase:
         await self.study_subject_repo.delete_study_subject(subject_id)
 
         # Dispatch an event indicating that the study subject has been deleted
-        event = DeleteStudySubjectEvent(subject_id=subject_id)
+        event = DeleteStudySubjectEvent(subject_id)
         await self.event_dispatcher.dispatch(event)

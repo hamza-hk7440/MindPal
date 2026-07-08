@@ -1,6 +1,6 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, WebSocket, WebSocketDisconnect
-from typing import List
+from fastapi import File,UploadFile,Form,APIRouter, Depends, status, WebSocket, WebSocketDisconnect
+from typing import List,Optional
 import asyncio
 # Presentation Schema Context
 from ingestion.presentation.schemas.resource_schema import AddResourceRequest
@@ -17,21 +17,23 @@ router = APIRouter(prefix="/resources", tags=["Resources"])
     summary="Initiate resource upload and text extraction pipeline"
 )
 async def add_resource(
-    request: AddResourceRequest, 
+    subject_id: UUID = Form(...),
+    title: str = Form(...),
+    doc_url: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
     controller: ResourceController = Depends(get_resource_controller)
 ) -> dict:
-    """
-    Triggers the resource extraction use case asynchronously.
-    Returns a tracking task_id immediately so the client can listen to the WebSocket tracker.
-    """
-    # Fire off or delegate the execution
-    resource_dto = await controller.upload_resource(request)
+    resource_dto = await controller.upload_resource(
+        subject_id=subject_id,
+        title=title,
+        doc_url=doc_url,
+        file=file
+    )
     
-    # Return 202 Accepted with a task registration handle
     return {
         "status": "queued",
         "message": "Resource ingestion started successfully.",
-        "task_id": str(resource_dto.id),  # Usually your Resource ID or an explicit Task UUID
+        "task_id": str(resource_dto.id),
         "resource": resource_dto
     }
 

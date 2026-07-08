@@ -16,7 +16,6 @@ class UpdateStudySubjectEvent(DomainEvent):
 @dataclass(frozen=True)
 class DeleteStudySubjectEvent(DomainEvent):
     study_subject_id: UUID
-    user_id: UUID
 @dataclass(frozen=True)
 class GetAllStudySubjectsEvent(DomainEvent):
     user_id: UUID
@@ -31,4 +30,4 @@ class GetStudySubjectByNameEvent(DomainEvent):
 @dataclass(frozen=True)
 class GetStudySubjectByIdEvent(DomainEvent):
     study_subject_id: UUID
-    user_id: UUID
+    

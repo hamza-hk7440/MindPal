@@ -1,5 +1,5 @@
-from ingestion.application.services.extract_bytes_from_url_service import IExtraxtBytesFromUrlService
-class ExtraxtBytesFromUrlService(IExtraxtBytesFromUrlService):
+from ingestion.application.services.extract_bytes_from_url_service import IExtractBytesFromUrlService
+class ExtractBytesFromUrlService(IExtractBytesFromUrlService):
     async def extract_bytes_from_url(self, url: str) -> bytes:
         import requests
         try:

@@ -11,7 +11,7 @@ class FetchStudySubjectUseCase:
 
     async def fetch_one_study_subject(self, subject_id: UUID) -> StudySubject:
         study_subject = await self.study_subject_repo.get_study_subject_by_id(subject_id)
-        event = GetStudySubjectByIdEvent(subject_id=subject_id)
+        event = GetStudySubjectByIdEvent(subject_id)
         await self.event_dispatcher.dispatch(event)
         if not study_subject:
             raise StudySubjectNotFoundException(f"Study subject with ID {subject_id} not found.")
