@@ -2,9 +2,6 @@ from uuid import UUID
 from fastapi import File,UploadFile,Form,APIRouter, Depends, status, WebSocket, WebSocketDisconnect
 from typing import List,Optional
 import asyncio
-# Presentation Schema Context
-from ingestion.presentation.schemas.resource_schema import AddResourceRequest
-# Dependency Injection Components
 from ingestion.presentation.schemas.dependencies import get_resource_controller
 from ingestion.presentation.controllers.resource_controller import ResourceController
 
