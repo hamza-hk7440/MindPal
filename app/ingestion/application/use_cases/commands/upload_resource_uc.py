@@ -47,33 +47,20 @@ class UploadResourceUseCase:
                       file_bytes: Optional[bytes], file: Optional[File] = None) -> AddResourceDTO:
         
         await self._validate_resource_input(subject_id, title)
-        
         doc_type = await self._determine_doc_type(doc_url, file_bytes)
-        
         content = await self._extract_content(doc_type, doc_url, file_bytes, file)
         
         if content is None:
             raise UnsupportedResourceFormatException("Failed to extract valid structural content.")
         
         resource_entity = Resource.create(
-            subject_id=subject_id,
-            title=title,
-            doc_url=doc_url or f"uploaded://{title}",
-            doc_type=doc_type,
-            content=content
+            subject_id=subject_id, title=title, 
+            doc_url=doc_url or f"uploaded://{title}", 
+            doc_type=doc_type, content=content
         )
-        
         saved_resource = await self.resource_repo.save_resource(resource_entity)
         
-        await self.event_dispatcher.dispatch(CreateResourceEvent(
-            resource_id=saved_resource.id,
-            subject_id=saved_resource.subject_id,
-            title=saved_resource.title,
-            doc_url=saved_resource.doc_url,
-            doc_type=saved_resource.doc_type,
-            content=saved_resource.content
-        ))
-
+        await self.event_dispatcher.dispatch(CreateResourceEvent(**saved_resource.to_dict()))
         return self._map_to_dto(saved_resource)
 
     async def _validate_resource_input(self, subject_id: UUID, title: str) -> None:
@@ -93,23 +80,31 @@ class UploadResourceUseCase:
 
     async def _extract_content(self, doc_type: Doc_type, doc_url: Optional[str], 
                                incoming_bytes: Optional[bytes], file: Any) -> Optional[str]:
-        # Handle Audio specially by passing the file object
+        # Route audio immediately using the file object
         if doc_type == Doc_type.AUDIO:
             return await self.transcribe_audio_service.transcribe_audio(file)
 
-        # For others, ensure we have bytes
+        # Route remaining types by fetching bytes first
         raw_bytes = incoming_bytes or (await self.extract_bytes_from_url_service.extract_bytes_from_url(doc_url) if doc_url else None)
         if not raw_bytes: return None
 
-        if doc_type == Doc_type.PDF:
-            return await self.extract_text_from_pdf_service.extract_text_from_pdf(raw_bytes)
-        if doc_type == Doc_type.VIDEO:
-            video_id = await self.extract_video_id_service.extract_video_id(doc_url)
-            return await self.extract_youtube_video_transcript_service.get_youtube_video_transcript(video_id, doc_url)
-        if doc_type == Doc_type.IMAGE:
-            service = self.extract_text_from_image_locally_service if settings.USE_LOCAL_LLM else self.extract_text_from_image_with_gemini_service
-            return await service.extract_text_from_image(raw_bytes)
-        return None
+        handlers = {
+            Doc_type.PDF: self.extract_text_from_pdf_service.extract_text_from_pdf,
+            Doc_type.VIDEO: lambda _: self._handle_video(doc_url),
+            Doc_type.IMAGE: lambda b: self._handle_image(b)
+        }
+        
+        handler = handlers.get(doc_type)
+        return await handler(raw_bytes) if handler else None
+
+    async def _handle_video(self, doc_url: Optional[str]) -> Optional[str]:
+        if not doc_url: return None
+        video_id = await self.extract_video_id_service.extract_video_id(doc_url)
+        return await self.extract_youtube_video_transcript_service.get_youtube_video_transcript(video_id, doc_url)
+
+    async def _handle_image(self, raw_bytes: bytes) -> str:
+        service = self.extract_text_from_image_locally_service if settings.USE_LOCAL_LLM else self.extract_text_from_image_with_gemini_service
+        return await service.extract_text_from_image(raw_bytes)
 
     def _map_to_dto(self, resource) -> AddResourceDTO:
         def _get(attr): return attr.value if hasattr(attr, "value") else str(attr)
