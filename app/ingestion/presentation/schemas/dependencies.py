@@ -12,7 +12,8 @@ from ingestion.application.use_cases.commands.vectorize_chunks_uc import Vectori
 from ingestion.application.use_cases.queries.fetch_all_resources import FetchAllResourcesUseCase
 from ingestion.application.use_cases.queries.fetch_study_subject_uc import FetchStudySubjectUseCase
 from ingestion.application.use_cases.queries.provide_relevant_chunks_uc import ProvideRelevantChunksUseCase
-
+from ingestion.application.use_cases.commands.delete_chunk_by_subject_id_uc import DeleteChunkBySubjectIdUseCase
+from ingestion.application.use_cases.commands.delete_chunk_by_resource_uc import DeleteChunkByResourceUseCase
 from ingestion.infrastructure.database.repositories.chunks_repository import ChunksRepository
 from ingestion.infrastructure.database.repositories.resource_repository import ResourceRepository
 from ingestion.infrastructure.database.repositories.study_subject_repository import StudySubjectRepository
@@ -163,9 +164,20 @@ def get_chunks_controller(
         event_dispatcher=event_dispatcher,
         vectorize_chunk_service=vectorize_chunk_service,
     )
+    delete_chunk_by_subject_id_uc = DeleteChunkBySubjectIdUseCase(
+        chunks_repo=chunks_repo,
+        
+    )
+    delete_chunk_by_resource_uc = DeleteChunkByResourceUseCase(
+        chunks_repo=chunks_repo,
+        
+    )
     
     return ChunksController(
         split_resources_into_chunks_uc=split_resources_into_chunks_uc,
         vectorize_chunks_uc=vectorize_chunks_uc,
         provide_relevant_chunks_uc=provide_relevant_chunks_uc,
+        delete_chunk_by_subject_id_uc=delete_chunk_by_subject_id_uc,
+        delete_chunk_by_resource_uc=delete_chunk_by_resource_uc
+        
     )

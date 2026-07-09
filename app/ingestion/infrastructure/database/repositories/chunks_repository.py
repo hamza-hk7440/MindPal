@@ -70,6 +70,9 @@ class ChunksRepository(IChunksRepository):
     async def delete_all_chunks_by_resource(self, resource_id: UUID) -> int:
         response = await self._table().delete().eq("source_id", str(resource_id)).execute()
         return len(response.data or [])
+    async def delete_all_chunks_by_study_subject(self, study_subject_id: UUID) -> int:
+        response = await self._table().delete().eq("study_subject", str(study_subject_id)).execute()
+        return len(response.data or [])
     async def get_all_chunks(
         self, 
         resource_id: UUID, 

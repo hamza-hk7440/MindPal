@@ -10,21 +10,14 @@ router = APIRouter(prefix="/chunks", tags=["Chunks Ingestion"])
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=List[ChunkDTO])
 async def add_chunk(study_subject_id: UUID, resource_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
     return await controller.split_resources_into_chunks(resource_id=resource_id, study_subject_id=study_subject_id)
-@router.delete("/{chunk_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_chunk(chunk_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
-    await controller.delete_chunk(chunk_id)
-
-@router.get("/{chunk_id}", response_model=dict)
-async def fetch_chunk(chunk_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
-    return await controller.fetch_chunk(chunk_id)
-
-@router.get("/", response_model=List[dict])
-async def fetch_all_chunks(controller: ChunksController = Depends(get_chunks_controller)):
-    return await controller.fetch_all_chunks()
-
-@router.get("/resource/{resource_id}", response_model=List[dict])
-async def fetch_chunks_by_resource(resource_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
-    return await controller.fetch_chunks_by_resource(resource_id)
 @router.get("/study-subject/{subject_id}", response_model=List[dict])
 async def provide_relevant_chunks(subject_id: UUID, query: str, controller: ChunksController = Depends(get_chunks_controller)):
     return await controller.provide_relevant_chunks(subject_id=subject_id, query=query)
+@router.post("/deletechunkbyresource/{resource_id}", status_code=status.HTTP_200_OK)
+async def delete_chunks_by_resource(resource_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
+    await controller.delete_chunks_by_resource(resource_id=resource_id)
+    return {"message": f"Chunks associated with resource {resource_id} have been deleted."}
+@router.post("/deletechunkbystudysubject/{study_subject_id}", status_code=status.HTTP_200_OK)
+async def delete_chunks_by_study_subject(study_subject_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
+    await controller.delete_chunks_by_study_subject(study_subject_id=study_subject_id)
+    return {"message": f"Chunks associated with study subject {study_subject_id} have been deleted."}

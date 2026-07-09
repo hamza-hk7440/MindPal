@@ -26,6 +26,9 @@ class IChunksRepository(IRepository[Chunk]):
     @abstractmethod
     async def delete_all_chunks_by_resource(self, resource_id: UUID) -> int:
         pass
+    @abstractmethod
+    async def delete_all_chunks_by_study_subject(self, study_subject_id: UUID) -> int:
+        pass
 
     @abstractmethod
     async def get_all_chunks(

@@ -7,6 +7,8 @@ from fastapi import status, HTTPException
 from ingestion.application.use_cases.commands.split_resources_into_chunks_uc import SplitResourcesIntoChunksUseCase
 from ingestion.application.use_cases.commands.vectorize_chunks_uc import VectorizeChunksUseCase
 from ingestion.application.use_cases.queries.provide_relevant_chunks_uc import ProvideRelevantChunksUseCase
+from ingestion.application.use_cases.commands.delete_chunk_by_subject_id_uc import DeleteChunkBySubjectIdUseCase
+from ingestion.application.use_cases.commands.delete_chunk_by_resource_uc import DeleteChunkByResourceUseCase 
 # Application Layer Structural Exception Boundaries
 from ingestion.application.exceptions.exceptions import (
     ResourceNotFoundException,
@@ -19,11 +21,15 @@ class ChunksController:
         self, 
         split_resources_into_chunks_uc: SplitResourcesIntoChunksUseCase, 
         vectorize_chunks_uc: VectorizeChunksUseCase, 
-        provide_relevant_chunks_uc: ProvideRelevantChunksUseCase
+        provide_relevant_chunks_uc: ProvideRelevantChunksUseCase,
+        delete_chunk_by_subject_id_uc: DeleteChunkBySubjectIdUseCase,
+        delete_chunk_by_resource_uc: DeleteChunkByResourceUseCase
     ):
         self._split_uc = split_resources_into_chunks_uc
         self._vectorize_uc = vectorize_chunks_uc
         self._provide_relevant_uc = provide_relevant_chunks_uc
+        self._delete_by_subject_uc = delete_chunk_by_subject_id_uc
+        self._delete_by_resource_uc = delete_chunk_by_resource_uc
 
     async def split_resources_into_chunks(self, resource_id: UUID, study_subject_id: UUID) -> List[dict]:
         try:
@@ -74,5 +80,27 @@ class ChunksController:
         except IngestionExternalServiceException as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=str(exc)
+            )
+    async def delete_chunks_by_resource(self, resource_id: UUID) -> None:
+        """
+        Deletes all chunks associated with a given resource ID.
+        """
+        try:
+            await self._delete_by_resource_uc.execute(resource_id=resource_id)
+        except ResourceNotFoundException as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(exc)
+            )
+    async def delete_chunks_by_study_subject(self, study_subject_id: UUID) -> None:
+        """
+        Deletes all chunks associated with a given study subject ID.
+        """
+        try:
+            await self._delete_by_subject_uc.execute(study_subject_id=study_subject_id)
+        except ResourceNotFoundException as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(exc)
             )
