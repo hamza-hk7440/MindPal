@@ -82,11 +82,7 @@ class UploadResourceUseCase:
         return None
 
     async def execute(
-        self,
-        subject_id: UUID,
-        title: str,
-        doc_url: Optional[str],
-        file_bytes: Optional[bytes],
+self,subject_id: UUID,title: str,doc_url: Optional[str],file_bytes: Optional[bytes],
         inbound_doc_type: Optional[str] = None,
         file:Optional[File] = None
     ) -> AddResourceDTO:
