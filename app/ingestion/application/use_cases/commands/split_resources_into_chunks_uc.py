@@ -9,7 +9,7 @@ from ingestion.application.services.slice_document_into_chunks_service import IS
 from ingestion.application.services.vectorize_chunk_service import IVectorizeChunkService
 from ingestion.application.exceptions.exceptions import ResourceNotFoundException, ChunkingFailureException
 from ingestion.domain.interfaces.study_subject_repo import IStudySubjectRepository
-
+from ingestion.application.dtos.chunks_dto import ChunkDTO
 class SplitResourcesIntoChunksUseCase:
     def __init__(
         self,
@@ -33,13 +33,14 @@ class SplitResourcesIntoChunksUseCase:
             raise ResourceNotFoundException(f"Resource with ID {resource_id} not found.")
         return resource
 
-    async def execute(self, resource_id: UUID, study_subject_id: UUID) -> None:
+    async def execute(self, resource_id: UUID, study_subject_id: UUID) -> list[ChunkDTO]:
         resource = await self._validate_resource_exists(resource_id)
         try:
             chunks_content = await self.slice_document_service.slice_document_into_chunks(resource.content)
         except Exception as e:
             raise ChunkingFailureException(f"Failed to chunk resource {resource_id}: {str(e)}")
         
+        processed_chunks = []
         for content in chunks_content:
             embedding_vector = await self.vectorize_chunk_service.vectorize_chunk(content)
             
@@ -58,3 +59,7 @@ class SplitResourcesIntoChunksUseCase:
                 resource_id=resource_id
             )
             await self.event_dispatcher.dispatch(event)
+            
+            processed_chunks.append(ChunkDTO.from_entity(chunk))
+            
+        return processed_chunks

@@ -156,6 +156,7 @@ def get_chunks_controller(
         event_dispatcher=event_dispatcher,
         slice_document_service=slice_document_service,
         study_subject_repo=study_subject_repo,
+        vectorize_chunk_service=vectorize_chunk_service,
     )
     vectorize_chunks_uc = VectorizeChunksUseCase(
         chunks_repo=chunks_repo,

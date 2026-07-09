@@ -45,3 +45,15 @@ class Resource:
             content=Content(content),
             created_at=datetime.now(timezone.utc)
         )
+    @classmethod
+    def to_dict(cls, resource: "Resource") -> dict:
+        """Converts a Resource entity to a dictionary representation."""
+        return {
+            "id": str(resource.id),
+            "subject_id": str(resource.subject_id),
+            "doc_type": resource.doc_type.value,
+            "title": resource.title.value,
+            "doc_url": resource.doc_url.value,
+            "content": resource.content.value,
+            "created_at": resource.created_at.isoformat()
+        }

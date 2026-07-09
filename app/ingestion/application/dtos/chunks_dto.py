@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID
-
+from ingestion.domain.entities.chunks_entity import Chunk
 from pydantic import BaseModel, Field, ConfigDict
 
 class ChunkDTO(BaseModel):
@@ -12,6 +12,12 @@ class ChunkDTO(BaseModel):
     embedding: Annotated[list[float], Field(description="The embedding vector for the chunk.")]
     created_at: Annotated[datetime | None, Field(description="The timestamp when the chunk was created.")] = None
     model_config=ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        json_encoders={
+            UUID: lambda v: str(v),
+            datetime: lambda v: v.isoformat() 
+        },
         extra="forbid",
         json_schema_extra={
             "example": {
@@ -22,3 +28,25 @@ class ChunkDTO(BaseModel):
             }
         }
     )
+    @classmethod
+    def from_entity(cls, chunk_entity: Chunk) -> "ChunkDTO":
+        # 1. Force content to string
+        raw_content = chunk_entity.content.value if hasattr(chunk_entity.content, 'value') else str(chunk_entity.content)
+        
+        # 2. Force embedding to a plain Python list[float]
+        emb_obj = chunk_entity.embedding
+        if hasattr(emb_obj, 'values'):
+            raw_embedding = list(emb_obj.values)
+        elif hasattr(emb_obj, '_values'):
+            raw_embedding = list(emb_obj._values)
+        else:
+            raw_embedding = list(emb_obj) # Fallback to trying to cast whatever it is to a list
+
+        return cls(
+            id=chunk_entity.id,
+            resource_id=chunk_entity.source_id,
+            study_subject_id=chunk_entity.study_subject,
+            content=raw_content,
+            embedding=raw_embedding,
+            created_at=chunk_entity.created_at
+        )

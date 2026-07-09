@@ -1,5 +1,6 @@
 from typing import List
 from uuid import UUID
+from ingestion.application.dtos.chunks_dto import ChunkDTO
 from fastapi import status, HTTPException
 
 # Presentation Layer Schema Context
@@ -26,14 +27,10 @@ class ChunksController:
         self._vectorize_uc = vectorize_chunks_uc
         self._provide_relevant_uc = provide_relevant_chunks_uc
 
-    async def split_resources_into_chunks(self, resource_id: UUID, study_subject_id: UUID) -> List[Chunk]:
-        """
-        Retrieves a text resource asset and processes it through the text-splitting engine.
-        """
+    async def split_resources_into_chunks(self, resource_id: UUID, study_subject_id: UUID) -> List[dict]:
         try:
-            chunks_dto = await self._split_uc.execute(resource_id=resource_id, study_subject_id=study_subject_id)
-            return [Chunk.model_validate(chunk) for chunk in chunks_dto]
-            
+            chunks = await self._split_uc.execute(resource_id=resource_id, study_subject_id=study_subject_id)            
+            return [chunk.model_dump() for chunk in chunks]
         except ResourceNotFoundException as exc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -63,7 +60,7 @@ class ChunksController:
                 detail=f"Vector store or Embedding API dependency down: {str(exc)}"
             )
 
-    async def provide_relevant_chunks(self, query: str, subject_id: UUID) -> List[Chunk]:
+    async def provide_relevant_chunks(self, query: str, subject_id: UUID) -> List[ChunkDTO]:
         """
         Executes a semantic vector similarity search across documents mapped to a specific subject context.
         """
@@ -72,7 +69,7 @@ class ChunksController:
                 query=query, 
                 subject_id=subject_id
             )
-            return [Chunk.model_validate(chunk) for chunk in relevant_chunks_dto]
+            return [ChunkDTO.model_validate(chunk) for chunk in relevant_chunks_dto]
             
         except IngestionExternalServiceException as exc:
             raise HTTPException(
