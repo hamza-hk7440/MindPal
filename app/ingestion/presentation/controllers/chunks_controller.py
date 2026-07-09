@@ -1,5 +1,6 @@
 from typing import List
 from uuid import UUID
+from ingestion.domain.entities.chunks_entity import Chunk
 from ingestion.application.dtos.chunks_dto import ChunkDTO
 from fastapi import status, HTTPException
 
@@ -57,19 +58,21 @@ class ChunksController:
                 detail=f"Vector store or Embedding API dependency down: {str(exc)}"
             )
 
-    async def provide_relevant_chunks(self, query: str, subject_id: UUID) -> List[ChunkDTO]:
-        """
-        Executes a semantic vector similarity search across documents mapped to a specific subject context.
-        """
+    async def provide_relevant_chunks(self, query: str, subject_id: UUID) -> List[dict]:
         try:
-            relevant_chunks_dto = await self._provide_relevant_uc.execute(
+            raw_data = await self._provide_relevant_uc.execute(
                 query=query, 
-                subject_id=subject_id
+                threshold=0.3,
+                count=2,
+                filter_subject_id=subject_id
             )
-            return [ChunkDTO.model_validate(chunk) for chunk in relevant_chunks_dto]
+            
+            entities = [Chunk.from_db_dict(item) for item in raw_data]
+            
+            return [ChunkDTO.from_entity(entity).model_dump() for entity in entities]
             
         except IngestionExternalServiceException as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Semantic search failed on downstream vector store index lookup: {str(exc)}"
+                detail=str(exc)
             )
