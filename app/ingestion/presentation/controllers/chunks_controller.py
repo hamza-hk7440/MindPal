@@ -3,9 +3,6 @@ from uuid import UUID
 from ingestion.application.dtos.chunks_dto import ChunkDTO
 from fastapi import status, HTTPException
 
-# Presentation Layer Schema Context
-from ingestion.presentation.schemas.chunks_schema import Chunk
-# Application Layer Use Case Contracts
 from ingestion.application.use_cases.commands.split_resources_into_chunks_uc import SplitResourcesIntoChunksUseCase
 from ingestion.application.use_cases.commands.vectorize_chunks_uc import VectorizeChunksUseCase
 from ingestion.application.use_cases.queries.provide_relevant_chunks_uc import ProvideRelevantChunksUseCase

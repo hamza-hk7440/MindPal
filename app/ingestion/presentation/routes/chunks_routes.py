@@ -2,7 +2,6 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from typing import List
 from ingestion.application.dtos.chunks_dto import ChunkDTO
-from ingestion.presentation.schemas.chunks_schema import Chunk
 from ingestion.presentation.schemas.dependencies import get_chunks_controller
 from ingestion.presentation.controllers.chunks_controller import ChunksController
 
