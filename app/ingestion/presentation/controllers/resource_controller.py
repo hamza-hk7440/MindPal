@@ -68,9 +68,6 @@ class ResourceController:
                 detail="An internal structural error occurred while executing the transaction."
             )
     async def delete_resource(self, resource_id: UUID) -> None:
-        """
-        Dispatches target ID coordinates to delete an ingested resource asset.
-        """
         try:
             await self._delete_uc.execute(resource_id=resource_id)
             
