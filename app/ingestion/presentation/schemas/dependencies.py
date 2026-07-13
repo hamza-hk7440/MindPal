@@ -1,5 +1,6 @@
 # MindPal/app/ingestion/presentation/schemas/dependencies.py
 
+from ingestion.infrastructure.tasks import ingest_resource_task
 from fastapi import Depends
 from supabase import AsyncClient
 
@@ -75,6 +76,7 @@ def get_study_subject_controller(
 
 def get_resource_controller(
     client: AsyncClient = Depends(get_supabase_client),
+    # REMOVED: ingest_resource_task: ingest_resource_task = Depends(ingest_resource_task)
 ) -> ResourceController:
     """Provides the ResourceController instance."""
     resource_repo = ResourceRepository(client=client)
@@ -112,10 +114,13 @@ def get_resource_controller(
         study_subject_repo=study_subject_repo,
         event_dispatcher=event_dispatcher,
     )
+    
+    # Pass the task directly here
     return ResourceController(
         upload_resource_uc=upload_resource_uc,
         delete_resource_uc=delete_resource_uc,
         fetch_all_resources_uc=fetch_all_resources_uc,
+        ingest_resource_task=ingest_resource_task 
     )
 
 # New Cross-Module Dependency Provider

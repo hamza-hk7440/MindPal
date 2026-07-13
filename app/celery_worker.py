@@ -1,0 +1,2 @@
+from core.celery_app import celery_app
+from ingestion.infrastructure.tasks import ingest_resource_task

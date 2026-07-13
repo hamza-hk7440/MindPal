@@ -1,10 +1,11 @@
 from collections.abc import AsyncIterator
 
-from supabase import AsyncClient, create_async_client
+from supabase import AsyncClient, create_async_client, Client, create_client
 
 from chat.infrastructure.config.settings import settings
 
 _supabase_client: AsyncClient | None = None
+_supabase_sync_client: Client | None = None
 
 
 async def _get_or_create_supabase_client() -> AsyncClient:
@@ -17,6 +18,18 @@ async def _get_or_create_supabase_client() -> AsyncClient:
         )
 
     return _supabase_client
+
+
+def get_supabase_sync_client() -> Client:
+    global _supabase_sync_client
+
+    if _supabase_sync_client is None:
+        _supabase_sync_client = create_client(
+            settings.SUPABASE_URL,
+            settings.SUPABASE_ANON_KEY,
+        )
+
+    return _supabase_sync_client
 
 
 async def init_chat_db() -> AsyncClient:

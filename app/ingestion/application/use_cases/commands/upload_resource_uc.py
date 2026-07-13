@@ -97,9 +97,9 @@ self,subject_id: UUID,title: str,doc_url: Optional[str],file_bytes: Optional[byt
             elif cleaned_url.endswith(".pdf"):
                 bounded_doc_type = Doc_type.PDF
             else:
-                bounded_doc_type = Doc_type.TEXT
+                bounded_doc_type = Doc_type.URL
         else:
-            bounded_doc_type = Doc_type.TEXT
+            bounded_doc_type = Doc_type.URL
 
         content = await self._extract_content(bounded_doc_type, doc_url, file_bytes,file)
 

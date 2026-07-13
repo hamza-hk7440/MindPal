@@ -1,19 +1,16 @@
-from uuid import UUID
-from fastapi import File,UploadFile,Form,APIRouter, Depends, status, WebSocket, WebSocketDisconnect
-from typing import List,Optional
+import redis
 import asyncio
+from uuid import UUID
+from typing import List, Optional
+from fastapi import File, UploadFile, Form, APIRouter, Depends, status, WebSocket, WebSocketDisconnect
 from ingestion.presentation.schemas.resource_schema import ResourceResponse
 from ingestion.presentation.schemas.dependencies import get_resource_controller
 from ingestion.presentation.controllers.resource_controller import ResourceController
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
+r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
 
-
-@router.post(
-    "/", 
-    status_code=status.HTTP_202_ACCEPTED,
-    summary="Initiate resource upload and text extraction pipeline"
-)
+@router.post("/", status_code=status.HTTP_202_ACCEPTED)
 async def add_resource(
     subject_id: UUID = Form(...),
     title: str = Form(...),
@@ -21,73 +18,50 @@ async def add_resource(
     file: Optional[UploadFile] = File(None),
     controller: ResourceController = Depends(get_resource_controller)
 ) -> dict:
-    resource_dto = await controller.upload_resource(
-        subject_id=subject_id,
-        title=title,
-        doc_url=doc_url,
-        file=file
-    )
-    
-    return {
-        "status": "queued",
-        "message": "Resource ingestion started successfully.",
-        "task_id": str(resource_dto.id),
-        "resource": resource_dto
-    }
-
+    resource_dto = await controller.upload_resource(subject_id, title, doc_url, file)
+    return {"status": "queued", "task_id": str(resource_dto.id), "resource": resource_dto}
 
 @router.websocket("/tasks/{task_id}")
-async def resource_ingestion_progress_ws(task_id: UUID, websocket: WebSocket):
-    """
-    Live WebSocket endpoint to let front-end UI components track file ingestion 
-    and extraction pipeline stages in real time without holding up HTTP requests.
-    """
+async def resource_ingestion_progress_ws(task_id: str, websocket: WebSocket):
     await websocket.accept()
     try:
-        # Pipeline execution steps example
-        # Production tip: Bind this loop to a Redis Pub/Sub channel or Celery/Task state manager keyed by task_id
-        pipeline_stages = [
-            {"step": "downloading_binary_payload", "progress_pct": 20},
-            {"step": "evaluating_file_mime_type", "progress_pct": 40},
-            {"step": "extracting_raw_text_via_ai_engines", "progress_pct": 75},
-            {"step": "structural_chunking_and_token_indexing", "progress_pct": 90},
-            {"step": "pipeline_completed", "progress_pct": 100}
-        ]
-
-        for stage in pipeline_stages:
-            await websocket.send_json({
-                "task_id": str(task_id),
-                "status": "processing" if stage["progress_pct"] < 100 else "completed",
-                "stage": stage["step"],
-                "progress": stage["progress_pct"]
-            })
-            # Simulate processing delay intervals between pipeline layers
-            await asyncio.sleep(1.0)
-
+        while True:
+            progress = r.get(f"task:{task_id}:progress")
+            error = r.get(f"task:{task_id}:error")
+            
+            if error:
+                await websocket.send_json({"status": "error", "message": error})
+                break
+            
+            p_val = progress if progress else "0"
+            await websocket.send_json({"status": "processing", "progress": p_val})
+            
+            if p_val == "100":
+                break
+            await asyncio.sleep(1)
     except WebSocketDisconnect:
-        # Safeguard clean socket termination if user navigates away or loses connection
         pass
 
-
-@router.delete(
-    "/{resource_id}", 
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a resource asset"
-)
-async def delete_resource(
-    resource_id: UUID, 
-    controller: ResourceController = Depends(get_resource_controller)
-) -> None:
+@router.delete("/{resource_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_resource(resource_id: UUID, controller: ResourceController = Depends(get_resource_controller)):
     await controller.delete_resource(resource_id)
-@router.get(
-    "/", 
-    response_model=List[ResourceResponse],
-    summary="Fetch all ingested resources",
-)
-async def fetch_all_resources(
-    controller: ResourceController = Depends(get_resource_controller),
-    study_subject_id: UUID = None
-) -> List[ResourceResponse]:
+
+@router.get("/", response_model=List[ResourceResponse])
+async def fetch_all_resources(study_subject_id: UUID = None, controller: ResourceController = Depends(get_resource_controller)):
     return await controller.fetch_all_resources(subject_id=study_subject_id)
 
-
+@router.post("/ingest", response_model=dict)
+async def ingest_resource(
+    subject_id: UUID = Form(...),
+    title: str = Form(...),
+    doc_url: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    controller: ResourceController = Depends(get_resource_controller)
+):
+    # Pass them directly to the controller
+    return await controller.ingest_resource(
+        subject_id=subject_id, 
+        title=title, 
+        doc_url=doc_url, 
+        file=file
+    )
