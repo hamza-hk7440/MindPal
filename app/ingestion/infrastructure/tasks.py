@@ -15,7 +15,6 @@ from ingestion.infrastructure.external.transcribe_audio_service_repository impor
 from ingestion.infrastructure.external.extract_video_id_repository import ExtractVideoIdService
 from chat.domain.interfaces.events import IEventDispatcher
 from ingestion.infrastructure.external.youtube_video_transcript_repository import YoutubeVideoTranscriptService
-from ingestion.infrastructure.external.execute_vector_search_repository import ExecuteVectorSearchService
 
 r = redis.Redis(host="localhost", port=6379, db=0)
 
@@ -47,7 +46,7 @@ def ingest_resource_task(self, subject_id, title, doc_url, file_bytes):
     task_id = self.request.id
     try:
         incoming_bytes = base64.b64decode(file_bytes.encode('utf-8')) if file_bytes else None
-        result = asyncio.run(_run_async_ingestion(subject_id, title, doc_url, incoming_bytes))
+        asyncio.run(_run_async_ingestion(subject_id, title, doc_url, incoming_bytes))        
         r.set(f"task:{task_id}:progress", "100")
         return {"status": "success"}
     except Exception as exc:
