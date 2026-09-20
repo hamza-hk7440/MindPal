@@ -2,4 +2,4 @@
 Module registration for quiz.
 """
 
-# Module configuration and dependencies
+from assessment.quiz.presentation.api_router import api_router

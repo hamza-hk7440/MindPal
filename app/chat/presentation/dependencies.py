@@ -11,15 +11,15 @@ from chat.infrastructure.database.session import get_supabase_client
 from chat.infrastructure.external.events import EventDispatcher
 from chat.infrastructure.external.gemini_client import GeminiClient
 from chat.infrastructure.external.llama2_client import Llama2Client
+from chat.infrastructure.external.rag_adapter import RAGAdapter
 from chat.presentation.controllers.conversation_controller import ConversationController
 from chat.presentation.controllers.message_controller import MessageController
-from chat.domain.interfaces.rag_provider import IRAGProvider
-
-# This mock provider bypasses the broken ingestion ChunksRepository 
-# so your WebSocket won't crash during testing!
-class _EmptyRAGProvider(IRAGProvider):
-    async def get_context_chunks(self, query: str) -> list[str]:
-        return ["This is a mock text chunk context passed to the model for test stability."]
+from ingestion.application.use_cases.queries.provide_relevant_chunks_uc import ProvideRelevantChunksUseCase
+from ingestion.infrastructure.database.repositories.chunks_repository import ChunksRepository
+from ingestion.infrastructure.database.repositories.resource_repository import ResourceRepository
+from ingestion.infrastructure.database.repositories.study_subject_repository import StudySubjectRepository
+from ingestion.infrastructure.external.execute_vector_search_repository import ExecuteVectorSearchService
+from ingestion.infrastructure.external.vectorize_chunk_repository import VectorizeChunkService
 
 def get_message_controller(
     client: AsyncClient = Depends(get_supabase_client),
@@ -29,7 +29,15 @@ def get_message_controller(
     event_dispatcher = EventDispatcher()
     gemini_service = GeminiClient()
     llama2_service = Llama2Client()
-    rag_provider = _EmptyRAGProvider() # Using the safe mock provider here
+    chunks_repo = ChunksRepository(client=client)
+    resource_repo = ResourceRepository(client=client)
+    provide_relevant_chunks_uc = ProvideRelevantChunksUseCase(
+        chunks_repo=chunks_repo,
+        event_dispatcher=event_dispatcher,
+        execute_vector_search_service=ExecuteVectorSearchService(),
+        vectorize_chunk_service=VectorizeChunkService(),
+    )
+    rag_provider = RAGAdapter(provide_relevant_chunks_uc, resource_repo)
 
     send_message_uc = SendMessageUseCase(
         message_repo=message_repo,
@@ -57,6 +65,7 @@ def get_conversation_controller(
     client: AsyncClient = Depends(get_supabase_client),
 ) -> ConversationController:
     conversation_repo = ConversationRepository(client=client)
+    study_subject_repo = StudySubjectRepository(client=client)
     event_dispatcher = EventDispatcher()
-    create_conversation_uc = CreateConversationUseCase(conversation_repo, event_dispatcher)
+    create_conversation_uc = CreateConversationUseCase(conversation_repo, event_dispatcher, study_subject_repo)
     return ConversationController(create_conversation_uc)

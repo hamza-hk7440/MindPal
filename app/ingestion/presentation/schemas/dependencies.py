@@ -3,7 +3,8 @@
 from ingestion.infrastructure.tasks import ingest_resource_task
 from fastapi import Depends
 from supabase import AsyncClient
-
+from chat.infrastructure.event_handler.ingestion_bridge import bridge_conversation_to_ingestion
+from chat.domain.events.conversation_event import ConversationCreatedEvent
 from ingestion.application.use_cases.commands.create_study_subject_uc import CreateStudySubjectUseCase
 from ingestion.application.use_cases.commands.delete_resource_uc import DeleteResourceUseCase
 from ingestion.application.use_cases.commands.delete_study_subject_uc import DeleteStudySubjectUseCase
@@ -186,3 +187,5 @@ def get_chunks_controller(
         delete_chunk_by_resource_uc=delete_chunk_by_resource_uc
         
     )
+dispatcher=EventDispatcher()
+dispatcher.register(ConversationCreatedEvent, bridge_conversation_to_ingestion)

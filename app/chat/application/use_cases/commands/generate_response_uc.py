@@ -50,7 +50,8 @@ class GenerateResponseUseCase:
     async def generate_response(self, conversation_id: UUID, content: str)-> SendMessageDTO:
         await self._validate_message_input(content, Role.AI, conversation_id)
         chat_history = await FetchMessageUseCase(self.message_repo, self.event_dispatcher, self.conversation_repo).fetch_messages_by_conversation_id(conversation_id)
-        chunks = await self.rag_provider.get_context_chunks(content)
+        conversation = await self.conversation_repo.get_conversation_by_id(conversation_id)
+        chunks = await self.rag_provider.get_context_chunks(content, conversation.subject_id)
         response_content = await self._generate_ai_response(chunks, conversation_id, content, chat_history=chat_history)
         # Create the response message entity
         response_message = ChatMessage.create(conversation_id=conversation_id, content=response_content, sender=Role.AI)
@@ -84,7 +85,8 @@ class GenerateResponseUseCase:
         ).fetch_messages_by_conversation_id(conversation_id)
         
         # 2. RAG Context Lookup (Cross-module dependency call to Ingestion module)
-        chunks = await self.rag_provider.get_context_chunks(content)
+        conversation = await self.conversation_repo.get_conversation_by_id(conversation_id)
+        chunks = await self.rag_provider.get_context_chunks(content, conversation.subject_id)
 
         # 3. Stream from LLM Service and collect full text for database storage
         full_response_text = ""

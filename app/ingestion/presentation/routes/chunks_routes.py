@@ -10,6 +10,11 @@ router = APIRouter(prefix="/chunks", tags=["Chunks Ingestion"])
 @router.post("/", status_code=status.HTTP_202_ACCEPTED)
 async def add_chunk(study_subject_id: UUID, resource_id: UUID, controller: ChunksController = Depends(get_chunks_controller)):
     return await controller.split_resources_into_chunks(resource_id=resource_id, study_subject_id=study_subject_id)
+
+@router.get("/study-subject/{subject_id}", response_model=list[dict])
+async def provide_relevant_chunks(subject_id: UUID, query: str, controller: ChunksController = Depends(get_chunks_controller)):
+    return await controller.provide_relevant_chunks(subject_id=subject_id, query=query)
+
 @router.websocket("/ws/task/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
     await websocket.accept()
@@ -20,8 +25,10 @@ async def websocket_endpoint(websocket: WebSocket, task_id: str):
             
             if error:
                 await websocket.send_json({"status": "error", "message": error.decode()})
-                break            
+                break
+            
             await websocket.send_json({"progress": progress.decode() if progress else "0"})
+            
             if progress and progress.decode() == "100":
                 break
                 

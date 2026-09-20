@@ -1,7 +1,7 @@
 import logging
 from ingestion.application.services.vectorize_chunk_service import IVectorizeChunkService
 from google import genai
-from google.genai import errors
+from google.genai import errors, types
 from chat.infrastructure.config.settings import settings
 
 class VectorizationError(Exception):
@@ -17,7 +17,8 @@ class VectorizeChunkService(IVectorizeChunkService):
         try:
             response = self.client.models.embed_content(
                 model=self._model,
-                contents=chunk
+                contents=chunk,
+                config=types.EmbedContentConfig(output_dimensionality=1536),
             )
             
             if not response.embeddings:

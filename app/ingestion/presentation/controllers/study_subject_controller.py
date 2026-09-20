@@ -69,9 +69,10 @@ class StudySubjectController:
         """
         try:
             study_subjects_dto = await self._fetch_uc.fetch_all_study_subjects(user_id=user_id)
-            
-            if study_subjects_dto and isinstance(study_subjects_dto[0], list):
-                study_subjects_dto = study_subjects_dto[0]  # Unwrap the first element if it's a list of lists 
+            if isinstance(study_subjects_dto, tuple):
+                study_subjects_dto = study_subjects_dto[0]
+            elif study_subjects_dto and isinstance(study_subjects_dto[0], list):
+                study_subjects_dto = study_subjects_dto[0]
             
             return [
                 StudySubjectResponse(

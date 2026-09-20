@@ -23,7 +23,6 @@ async def message_stream_ws(
     await websocket.accept()
     try:
         while True:
-            # 1. Receive incoming message string packet from the UI
             raw_data = await websocket.receive_text()
             payload = json.loads(raw_data)
             user_content = payload.get("content")
@@ -32,24 +31,16 @@ async def message_stream_ws(
                 await websocket.send_json({"event": "error", "message": "Message content is missing."})
                 continue
 
-            # 2. delegate saving request & triggering the pipeline via your controller
-            # The controller can coordinate saving the user message, querying chunks, and fetching the LLM stream.
-            await websocket.send_json({"event": "status", "message": "Thinking... searching knowledge base."})
-
-            # 3. Stream back the response tokens incrementally over the wire
-            # Adjust your controller to provide an async generator method
             async for token in controller.stream_message_response(conversation_id, user_content):
-                await websocket.send_json({
-                    "event": "token_delta",
-                    "text": token
-                })
-                
-            # Signal to the frontend components that generation has wrapped up
-            await websocket.send_json({"event": "generation_finished"})
+                await websocket.send_json(token)
 
     except WebSocketDisconnect:
-        # Gracefully drop connection context if the user navigates away
         pass
+    except Exception as exc:
+        try:
+            await websocket.send_json({"event": "error", "message": str(exc)})
+        except Exception:
+            pass
 
 
 @router.post(
@@ -71,7 +62,7 @@ async def send_message(
     summary="Fetch paginated historic chat messages matching a conversation context"
 )
 async def fetch_messages(
-    conversation_id: UUID,  # Enforces true structural UUID parsing
+    conversation_id: UUID,  
     skip: int = 0, 
     limit: int = 100, 
     controller: MessageController = Depends(get_message_controller)

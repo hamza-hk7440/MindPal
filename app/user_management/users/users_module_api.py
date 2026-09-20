@@ -2,4 +2,4 @@
 Module registration for users.
 """
 
-# Module configuration and dependencies
+from user_management.users.presentation.api_router import api_router

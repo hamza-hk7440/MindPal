@@ -57,6 +57,8 @@ class ResourceController:
 
     async def fetch_all_resources(self, subject_id: UUID) -> List[ResourceResponse]:
         resources_dto = await self._fetch_all_uc.execute(subject_id=subject_id)
+        if isinstance(resources_dto, tuple):
+            resources_dto = resources_dto[0]
         return [ResourceResponse.model_validate(r) for r in resources_dto]
 
     async def ingest_resource(self, subject_id: UUID, title: str, doc_url: Optional[str], file: Optional[UploadFile]):
